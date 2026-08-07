@@ -11,7 +11,7 @@ export const STUDENTS = [
   {
     id: "s1",
     name: "김우진",
-    grade: "초등 3학년",
+    grade: "초등 3학년 (10세)",
     class: "융합 조형 & 수채화반",
     avatarColor: "bg-sky-400",
     avatarEmoji: "👦",
@@ -25,10 +25,54 @@ export const STUDENTS = [
     avatarColor: "bg-amber-400",
     avatarEmoji: "👧",
     teacher: "주미 선생님"
+  },
+  {
+    id: "s3",
+    name: "배단우",
+    grade: "초등 5학년 (12세)",
+    class: "웹툰 일러스트 & 입체 조소반",
+    avatarColor: "bg-purple-400",
+    avatarEmoji: "🧑",
+    teacher: "신연정 원장님 / 주미 선생님"
   }
 ];
 
 export const ARTWORKS = [
+  {
+    id: "art-5",
+    studentId: "s3",
+    title: "미래의 친환경 에코 시티",
+    date: "2026.08.06",
+    category: "일러스트",
+    imageUrl: "/images/artwork_illust_danwoo.jpg",
+    materials: "디지털 드로잉 패드, 마카펜, 아크릴 페인트",
+    teacherName: "신연정 원장님",
+    teacherAvatar: "👩‍🎨",
+    feedback: "단우(12세)가 원근법과 공기 투시법을 기막히게 구사하여 미래도시의 유기적 건축미를 완벽히 구현해냈어요! 태양광 플라잉 자동차와 공중 정원의 구도가 아주 대담하고 독창적입니다! 👍",
+    tags: ["#SF일러스트", "#친환경미래도시", "#원근법지도", "#12세창작"],
+    likes: 25,
+    comments: [
+      { id: 1, name: "단우 엄마", date: "2026.08.06 18:20", text: "우와! 단우가 디테일하게 그린 미래 도시 그림이 너무 멋지네요! 신연정 원장님 지도 감사드립니다!" },
+      { id: 2, name: "신연정 원장님", date: "2026.08.06 19:05", text: "단우가 아이디어가 샘솟아서 실기 시간에 몰입도가 대단했습니다 ^^" }
+    ]
+  },
+  {
+    id: "art-6",
+    studentId: "s3",
+    title: "메카닉 로봇 아티스트",
+    date: "2026.08.01",
+    category: "조소/만들기",
+    imageUrl: "/images/artwork_sculpture_danwoo.jpg",
+    materials: "폴리머 클레이, 아크릴 메탈릭 페인트, 관절 와이어",
+    teacherName: "주미 선생님",
+    teacherAvatar: "🎨",
+    feedback: "단우가 로봇 관절마다 와이어 뼈대를 넣어 형태를 고정하고 금속 질감 페인팅을 섬세하게 표현했어요! 12세 연령에 맞는 입체 조형 구조 설계 능력이 단연 돋보입니다!",
+    tags: ["#로봇조소", "#메카닉조형", "#입체구조설계", "#클레이아트"],
+    likes: 21,
+    comments: [
+      { id: 1, name: "단우 아빠", date: "2026.08.01 20:10", text: "집에 가져온 로봇 조소 보고 놀랐습니다. 주미 선생님 꼼꼼한 피드백 감사해요!" }
+    ]
+  },
   {
     id: "art-1",
     studentId: "s1",
@@ -43,8 +87,7 @@ export const ARTWORKS = [
     tags: ["#색채감각", "#수채화기초", "#명화오마주"],
     likes: 14,
     comments: [
-      { id: 1, name: "우진 엄마", date: "2026.08.05 17:30", text: "우와! 우리 우진이 수채화 실력이 정말 많이 늘었네요~ 신연정 원장님 지도 감사드립니다!" },
-      { id: 2, name: "신연정 원장님", date: "2026.08.05 18:10", text: "감사합니다 학부모님! 우진이가 관찰력과 색 조합 센스가 아주 뛰어납니다 ^^" }
+      { id: 1, name: "우진 엄마", date: "2026.08.05 17:30", text: "우와! 우리 우진이 수채화 실력이 정말 많이 늘었네요~ 신연정 원장님 지도 감사드립니다!" }
     ]
   },
   {
@@ -60,9 +103,7 @@ export const ARTWORKS = [
     feedback: "우주복을 입은 고양이의 무중력 수염 표현과 신비로운 행성들의 조합이 상상력이 넘칩니다! 어두운 바탕 우주색을 칠할 때 끝까지 포기하지 않고 집중력을 발휘해준 우진이 대단해요!",
     tags: ["#상상화", "#우주여행", "#아크릴화"],
     likes: 19,
-    comments: [
-      { id: 1, name: "우진 엄마", date: "2026.07.28 18:05", text: "고양이 표정이 너무 귀여워요~ 주미 선생님 꼼꼼한 지도 감사해요!" }
-    ]
+    comments: []
   },
   {
     id: "art-3",
@@ -115,25 +156,25 @@ export const NOTICES = [
 • 담당: 신연정 원장, 주미 선생님
 • 안내사항: 
  - 학부모님께서는 편하신 시간에 방문하시어 자유 관람 가능합니다.
- - 아이들의 작품이 도록으로 제작되어 1권씩 무료 증정됩니다.
- - 전시 기간 동안 도슨트(아이들의 직접 작품 설명) 프로그램도 운영되오니 많은 참석 바랍니다!
+ - 김우진, 배시우, 배단우 학생 등의 작품이 도록으로 제작되어 1권씩 무료 증정됩니다.
+ - 전시 기간 동안 도슨트 프로그램도 운영되오니 많은 참석 바랍니다!
 
 감사합니다.`,
-    views: 45
+    views: 52
   },
   {
     id: 2,
-    title: "8월 입체 조형 수업 재료 준비 및 수강 안내 (주미 선생님)",
+    title: "8월 입체 조형 및 일러스트 수업 재료 안내 (주미 선생님)",
     date: "2026.07.25",
     tag: "안내",
     category: "수업",
     isRead: true,
-    content: `안녕하세요. 리더스아트 주미 선생님입니다. 8월 둘째 주부터 진행되는 입체 조형(클레이 및 목공 아티스트) 커리큘럼 안내입니다.
+    content: `안녕하세요. 리더스아트 주미 선생님입니다. 8월 둘째 주부터 진행되는 입체 조형(클레이 및 로봇 조형)과 일러스트 커리큘럼 안내입니다.
 
-수업에 필요한 천사점토, 목재, 아크릴 페인트 등 모든 재료비는 리더스아트에서 지원되오니 별도 구매하실 필요가 없습니다.
+수업에 필요한 천사점토, 폴리머클레이, 마카, 아크릴 페인트 등 모든 재료비는 리더스아트에서 지원되오니 별도 구매하실 필요가 없습니다.
 
-단, 물감이 옷에 묻을 수 있으니 김우진, 배시우 학생 등 개인 미술 앞치마와 팔토시를 8월 10일(월) 수업 전까지 학원에 챙겨 보내주시면 감사하겠습니다.`,
-    views: 72
+단, 물감이 옷에 묻을 수 있으니 김우진, 배시우, 배단우 학생 개인 미술 앞치마와 팔토시를 8월 10일(월) 수업 전까지 학원에 챙겨 보내주시면 감사하겠습니다.`,
+    views: 84
   },
   {
     id: 3,
@@ -145,7 +186,7 @@ export const NOTICES = [
     content: `8월 15일(토) 광복절은 법정 공휴일로 인해 리더스아트 미술학원 전체 휴원입니다.
 
 해당 토요일 수강생의 보강 수업은 8월 29일(토) 동일한 시간대에 진행될 예정입니다. 일정에 차질이 없으시길 바랍니다.`,
-    views: 94
+    views: 99
   },
   {
     id: 4,
@@ -157,52 +198,42 @@ export const NOTICES = [
     content: `기쁜 소식을 전합니다! 🎈
 지난 6월 개최된 '제24회 전국 어린이 창의 미술대회'에서 우리 리더스아트 재원생들이 우수상 및 장려상을 수상하였습니다.
 
+- 대상: 배단우 (초등 5학년 - 12세) - 일러스트 부문
 - 최우수상: 김우진 (초등 3학년) - 수채화 부문
 - 장려상: 배시우 (7세) - 입체 클레이 부문
 
 신연정 원장님과 주미 선생님의 지도로 정성껏 준비해 준 우리 아이들과 늘 응원해주신 학부모님께 감사드립니다!`,
-    views: 128
+    views: 145
   }
 ];
 
 export const ATTENDANCE_DATA = {
   s1: {
-    summary: {
-      totalDays: 12,
-      presentDays: 10,
-      lateDays: 1,
-      absentDays: 0,
-      makeupDays: 1,
-      attendanceRate: 92
-    },
+    summary: { totalDays: 12, presentDays: 10, lateDays: 1, absentDays: 0, makeupDays: 1, attendanceRate: 92 },
     days: {
       "2026-08-03": { status: "present", timeIn: "15:28", timeOut: "17:02", memo: "우진 정시 등원 / 신연정 원장님 수채화 스케치 지도" },
       "2026-08-05": { status: "present", timeIn: "15:30", timeOut: "17:00", memo: "수채화 채색 및 명암 수업 완료 (주미 선생님)" },
       "2026-08-07": { status: "late", timeIn: "15:48", timeOut: "17:15", memo: "학교 행사로 18분 지각 등원 / 연장 실기 진행" },
       "2026-08-10": { status: "present", timeIn: "15:25", timeOut: "17:00", memo: "입체 조형 아티스트 1차 과정" },
-      "2026-08-12": { status: "present", timeIn: "15:30", timeOut: "17:05", memo: "클레이 성형 완성 (신연정 원장님 피드백)" },
-      "2026-08-14": { status: "makeup", timeIn: "14:00", timeOut: "15:30", memo: "광복절 사전 보강 수업 진행" },
-      "2026-08-17": { status: "present", timeIn: "15:29", timeOut: "17:00", memo: "전시회 작품 캡션 및 설명지 작성" },
-      "2026-08-19": { status: "present", timeIn: "15:31", timeOut: "17:00", memo: "전시 작품 액자 디스플레이" },
-      "2026-08-21": { status: "present", timeIn: "15:30", timeOut: "17:00", memo: "자유 크로키 및 표현 기법 연습" },
-      "2026-08-24": { status: "present", timeIn: "15:28", timeOut: "17:00", memo: "9월 신규 주제 브레인스토밍" }
+      "2026-08-12": { status: "present", timeIn: "15:30", timeOut: "17:05", memo: "클레이 성형 완성 (신연정 원장님 피드백)" }
     }
   },
   s2: {
-    summary: {
-      totalDays: 8,
-      presentDays: 7,
-      lateDays: 0,
-      absentDays: 0,
-      makeupDays: 1,
-      attendanceRate: 100
-    },
+    summary: { totalDays: 8, presentDays: 7, lateDays: 0, absentDays: 0, makeupDays: 1, attendanceRate: 100 },
     days: {
       "2026-08-04": { status: "present", timeIn: "16:00", timeOut: "17:20", memo: "시우 정시 등원 / 주미 선생님 손도장 물감놀이" },
       "2026-08-06": { status: "present", timeIn: "15:58", timeOut: "17:25", memo: "공룡 클레이 반죽 빚기 지도" },
       "2026-08-11": { status: "present", timeIn: "16:02", timeOut: "17:30", memo: "아크릴 물감 공룡 채색 완성" },
-      "2026-08-13": { status: "present", timeIn: "16:00", timeOut: "17:20", memo: "동화책 읽고 그리기 (신연정 원장님 지도)" },
       "2026-08-18": { status: "makeup", timeIn: "15:00", timeOut: "16:20", memo: "리더스아트 전시회 체험 세션 참여" }
+    }
+  },
+  s3: {
+    summary: { totalDays: 10, presentDays: 10, lateDays: 0, absentDays: 0, makeupDays: 0, attendanceRate: 100 },
+    days: {
+      "2026-08-01": { status: "present", timeIn: "16:30", timeOut: "18:30", memo: "단우(12세) 메카닉 로봇 폴리머 클레이 완성 (주미 선생님)" },
+      "2026-08-04": { status: "present", timeIn: "16:30", timeOut: "18:30", memo: "미래 에코 시티 아이디어 아이패드 크로키" },
+      "2026-08-06": { status: "present", timeIn: "16:28", timeOut: "18:35", memo: "미래 도시 일러스트 아크릴 페인팅 완결 (신연정 원장님)" },
+      "2026-08-11": { status: "present", timeIn: "16:30", timeOut: "18:30", memo: "전시회 메인 포스터 드로잉 세션" }
     }
   }
 };
@@ -211,8 +242,8 @@ export const SCHEDULE_DATA = {
   monthlyTheme: {
     title: "리더스아트 8월 실기 테마 🎨",
     subtitle: "감성 스토리가 있는 입체 조형 & 명화 오마주 (신연정 원장 / 주미 선생님)",
-    description: "다양한 질감의 오일파스텔, 수채화, 천사점토를 활용하여 김우진, 배시우 학생 등 우리 아이만의 동화 속 한 장면을 입체 캔버스에 구현해보는 창의적인 달입니다.",
-    tags: ["#수채화기법", "#입체클레이", "#명화오마주", "#리더스아트전시회"]
+    description: "다양한 질감의 오일파스텔, 디지털 일러스트, 폴리머클레이를 활용하여 김우진, 배시우, 배단우(12세) 학생 등 우리 아이만의 동화 속 한 장면을 입체 캔버스에 구현해보는 창의적인 달입니다.",
+    tags: ["#수채화기법", "#SF일러스트", "#메카닉조소", "#리더스아트전시회"]
   },
   events: [
     {
@@ -229,10 +260,10 @@ export const SCHEDULE_DATA = {
       id: 2,
       date: "2026.08.07",
       day: "금",
-      title: "여름맞이 클레이 입체 특강 (주미 선생님)",
+      title: "여름맞이 입체 조소 & 일러스트 특강 (주미 선생님)",
       category: "특강수업",
       color: "bg-emerald-100 text-emerald-800 border-emerald-300",
-      description: "천사점토와 아크릴 페인트를 이용한 입체 오르골 공룡/동물 제작 수업",
+      description: "12세 고학년 로봇 조소 및 유치부 공룡 입체 클레이 완성 세션",
       dDay: "오늘"
     },
     {
@@ -262,7 +293,7 @@ export const SCHEDULE_DATA = {
       title: "9월 학기 수강 신청 및 신연정 원장님 1:1 상담주간",
       category: "상담",
       color: "bg-sky-100 text-sky-800 border-sky-300",
-      description: "김우진, 배시우 학생 관찰 기록지 전달 및 2학기 진도 상담 진행",
+      description: "김우진, 배시우, 배단우 학생 관찰 기록지 전달 및 2학기 진도 상담",
       dDay: "D+18"
     }
   ]
