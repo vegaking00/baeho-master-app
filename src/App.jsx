@@ -8,13 +8,27 @@ import ScheduleTab from './components/tabs/ScheduleTab';
 import ArtworkModal from './components/modals/ArtworkModal';
 import NoticeModal from './components/modals/NoticeModal';
 import AddArtworkModal from './components/modals/AddArtworkModal';
-import { STUDENTS, ARTWORKS, NOTICES } from './data/mockData';
+import AddNoticeModal from './components/modals/AddNoticeModal';
+import AddScheduleModal from './components/modals/AddScheduleModal';
+import AdminLoginModal from './components/modals/AdminLoginModal';
+import { STUDENTS, ARTWORKS, NOTICES, ATTENDANCE_DATA, SCHEDULE_DATA } from './data/mockData';
 import { 
-  subscribeArtworks, 
-  addArtworkToFirestore, 
+  subscribeGallery, 
+  subscribeNotices, 
+  subscribeAttendance, 
+  subscribeSchedules,
+  subscribeAuthStatus,
+  adminLogout,
+  addArtworkToFirestore,
+  deleteArtworkFromFirestore,
+  addNoticeToFirestore,
+  deleteNoticeFromFirestore,
+  updateAttendanceInFirestore,
+  addScheduleToFirestore,
+  deleteScheduleFromFirestore,
   addCommentToFirestore, 
   toggleLikeInFirestore,
-  isFirebaseConnected 
+  seedInitialFirestoreData
 } from './firebase';
 
 export default function App() {
@@ -22,38 +36,132 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('gallery');
   const [selectedArtwork, setSelectedArtwork] = useState(null);
   const [selectedNotice, setSelectedNotice] = useState(null);
+  
+  // Modals state
   const [showAddArtworkModal, setShowAddArtworkModal] = useState(false);
+  const [showAddNoticeModal, setShowAddNoticeModal] = useState(false);
+  const [showAddScheduleModal, setShowAddScheduleModal] = useState(false);
+  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
 
-  // Stateful lists so user interactions (like artwork comments & likes, notice read status) persist
+  // Admin Auth state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminUser, setAdminUser] = useState(null);
+
+  // Firestore Realtime Collections state
   const [artworksList, setArtworksList] = useState(ARTWORKS);
   const [noticesList, setNoticesList] = useState(NOTICES);
+  const [attendanceData, setAttendanceData] = useState(ATTENDANCE_DATA);
+  const [schedulesList, setSchedulesList] = useState(SCHEDULE_DATA.events);
 
   const currentStudent = STUDENTS.find(s => s.id === selectedStudentId) || STUDENTS[0];
   const unreadNoticeCount = noticesList.filter(n => !n.isRead).length;
 
-  // Real-time Firestore sync
+  // 1. Firebase Auth Listener
   useEffect(() => {
-    const unsubscribe = subscribeArtworks((updatedArtworks) => {
-      setArtworksList(updatedArtworks);
+    const unsubAuth = subscribeAuthStatus((user) => {
+      if (user) {
+        setIsAdmin(true);
+        setAdminUser(user);
+      } else {
+        setIsAdmin(false);
+        setAdminUser(null);
+      }
     });
-    return () => unsubscribe();
+    return () => unsubAuth();
   }, []);
 
-  // Add new artwork (Firestore + Local state)
+  // 2. Firestore Real-time Collections Sync
+  useEffect(() => {
+    seedInitialFirestoreData();
+
+    const unsubGallery = subscribeGallery((data) => setArtworksList(data));
+    const unsubNotices = subscribeNotices((data) => setNoticesList(data));
+    const unsubAttendance = subscribeAttendance((data) => setAttendanceData(data));
+    const unsubSchedules = subscribeSchedules((data) => setSchedulesList(data));
+
+    return () => {
+      unsubGallery();
+      unsubNotices();
+      unsubAttendance();
+      unsubSchedules();
+    };
+  }, []);
+
+  // --- ADMIN ACTIONS ---
+
+  // Admin Login success handler
+  const handleLoginSuccess = (user) => {
+    setIsAdmin(true);
+    setAdminUser(user);
+  };
+
+  // Admin Logout handler
+  const handleLogout = async () => {
+    await adminLogout();
+    setIsAdmin(false);
+    setAdminUser(null);
+  };
+
+  // 1. Add Artwork (gallery)
   const handleAddArtwork = async (newArtwork) => {
     const tempId = `art-${Date.now()}`;
     const artWithId = { id: tempId, ...newArtwork };
-
-    // Update local state for immediate feedback
     setArtworksList(prev => [artWithId, ...prev]);
 
-    // Send to Firestore if connected (Image URL stored in document, no Storage required!)
-    if (isFirebaseConnected) {
-      await addArtworkToFirestore(newArtwork);
-    }
+    await addArtworkToFirestore(newArtwork);
   };
 
-  // Toggle artwork like
+  // Delete Artwork
+  const handleDeleteArtwork = async (artworkId) => {
+    setArtworksList(prev => prev.filter(a => a.id !== artworkId));
+    await deleteArtworkFromFirestore(artworkId);
+  };
+
+  // 2. Add Notice (notices)
+  const handleAddNotice = async (newNotice) => {
+    const tempId = `not-${Date.now()}`;
+    const noticeWithId = { id: tempId, ...newNotice };
+    setNoticesList(prev => [noticeWithId, ...prev]);
+
+    await addNoticeToFirestore(newNotice);
+  };
+
+  // Delete Notice
+  const handleDeleteNotice = async (noticeId) => {
+    setNoticesList(prev => prev.filter(n => n.id !== noticeId));
+    await deleteNoticeFromFirestore(noticeId);
+  };
+
+  // 3. Update Attendance (attendance)
+  const handleUpdateAttendance = async (studentId, dateStr, dayRecord) => {
+    setAttendanceData(prev => {
+      const studentData = prev[studentId] || { summary: { totalDays: 10, presentDays: 9, lateDays: 1, absentDays: 0, makeupDays: 0, attendanceRate: 90 }, days: {} };
+      const updatedDays = { ...(studentData.days || {}), [dateStr]: dayRecord };
+      return {
+        ...prev,
+        [studentId]: { ...studentData, days: updatedDays }
+      };
+    });
+
+    await updateAttendanceInFirestore(studentId, dateStr, dayRecord, null);
+  };
+
+  // 4. Add Schedule (schedules)
+  const handleAddSchedule = async (newSchedule) => {
+    const tempId = `sch-${Date.now()}`;
+    const schWithId = { id: tempId, ...newSchedule };
+    setSchedulesList(prev => [schWithId, ...prev]);
+
+    await addScheduleToFirestore(newSchedule);
+  };
+
+  // Delete Schedule
+  const handleDeleteSchedule = async (scheduleId) => {
+    setSchedulesList(prev => prev.filter(s => s.id !== scheduleId));
+    await deleteScheduleFromFirestore(scheduleId);
+  };
+
+  // Parent Interactions (Likes & Comments)
   const handleToggleLike = async (artworkId, isLiked) => {
     setArtworksList(prev => prev.map(art => {
       if (art.id === artworkId) {
@@ -63,12 +171,9 @@ export default function App() {
       return art;
     }));
 
-    if (isFirebaseConnected) {
-      await toggleLikeInFirestore(artworkId, isLiked);
-    }
+    await toggleLikeInFirestore(artworkId, isLiked);
   };
 
-  // Add comment to artwork
   const handleAddComment = async (artworkId, commentText) => {
     const newComment = {
       id: Date.now(),
@@ -89,12 +194,9 @@ export default function App() {
       return art;
     }));
 
-    if (isFirebaseConnected) {
-      await addCommentToFirestore(artworkId, newComment);
-    }
+    await addCommentToFirestore(artworkId, newComment);
   };
 
-  // Mark notice as read
   const handleMarkNoticeRead = (noticeId) => {
     setNoticesList(prev => prev.map(n => n.id === noticeId ? { ...n, isRead: true } : n));
   };
@@ -108,7 +210,9 @@ export default function App() {
         <Header
           selectedStudent={selectedStudentId}
           onSelectStudent={setSelectedStudentId}
-          unreadNoticeCount={unreadNoticeCount}
+          isAdmin={isAdmin}
+          onOpenLoginModal={() => setShowAdminLoginModal(true)}
+          onLogout={handleLogout}
         />
 
         {/* Scrollable Main Content Area */}
@@ -119,6 +223,8 @@ export default function App() {
               student={currentStudent}
               onSelectArtwork={setSelectedArtwork}
               onOpenAddModal={() => setShowAddArtworkModal(true)}
+              isAdmin={isAdmin}
+              onDeleteArtwork={handleDeleteArtwork}
             />
           )}
 
@@ -129,17 +235,27 @@ export default function App() {
                 setSelectedNotice(notice);
                 handleMarkNoticeRead(notice.id);
               }}
+              isAdmin={isAdmin}
+              onOpenAddNoticeModal={() => setShowAddNoticeModal(true)}
+              onDeleteNotice={handleDeleteNotice}
             />
           )}
 
           {activeTab === 'attendance' && (
             <AttendanceTab
               student={currentStudent}
+              isAdmin={isAdmin}
+              onUpdateAttendance={handleUpdateAttendance}
             />
           )}
 
           {activeTab === 'schedule' && (
-            <ScheduleTab />
+            <ScheduleTab
+              events={schedulesList}
+              isAdmin={isAdmin}
+              onOpenAddScheduleModal={() => setShowAddScheduleModal(true)}
+              onDeleteSchedule={handleDeleteSchedule}
+            />
           )}
         </main>
 
@@ -173,6 +289,27 @@ export default function App() {
             student={currentStudent}
             onClose={() => setShowAddArtworkModal(false)}
             onAddArtwork={handleAddArtwork}
+          />
+        )}
+
+        {showAddNoticeModal && (
+          <AddNoticeModal
+            onClose={() => setShowAddNoticeModal(false)}
+            onAddNotice={handleAddNotice}
+          />
+        )}
+
+        {showAddScheduleModal && (
+          <AddScheduleModal
+            onClose={() => setShowAddScheduleModal(false)}
+            onAddSchedule={handleAddSchedule}
+          />
+        )}
+
+        {showAdminLoginModal && (
+          <AdminLoginModal
+            onClose={() => setShowAdminLoginModal(false)}
+            onLoginSuccess={handleLoginSuccess}
           />
         )}
       </div>

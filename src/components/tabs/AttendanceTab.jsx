@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, CheckCircle2, Clock, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { Calendar as CalendarIcon, CheckCircle2, Clock, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Edit3 } from 'lucide-react';
 import { ATTENDANCE_DATA } from '../../data/mockData';
 
-export default function AttendanceTab({ student }) {
+export default function AttendanceTab({ student, isAdmin, onUpdateAttendance }) {
   const [selectedDate, setSelectedDate] = useState('2026-08-07');
-  
+  const [isEditingMemo, setIsEditingMemo] = useState(false);
+  const [memoInput, setMemoInput] = useState('');
+  const [statusInput, setStatusInput] = useState('present');
+
   const studentData = ATTENDANCE_DATA[student.id] || ATTENDANCE_DATA['s1'];
   const summary = studentData.summary;
-  const daysRecord = studentData.days;
+  const daysRecord = studentData.days || {};
 
   // August 2026 Calendar days calculation (Aug 1 2026 is Saturday)
   const daysInMonth = 31;
-  const firstDayOfWeek = 6; // Saturday (0=Sun, 1=Mon, ..., 6=Sat)
+  const firstDayOfWeek = 6;
 
   const calendarCells = [];
-  // Empty padding cells for week offset
   for (let i = 0; i < firstDayOfWeek; i++) {
     calendarCells.push(null);
   }
-  // Days 1 to 31
   for (let day = 1; day <= daysInMonth; day++) {
     const formattedDay = day < 10 ? `0${day}` : `${day}`;
     const dateStr = `2026-08-${formattedDay}`;
@@ -44,6 +45,20 @@ export default function AttendanceTab({ student }) {
       default:
         return null;
     }
+  };
+
+  const handleSaveAttendance = () => {
+    const newRecord = {
+      status: statusInput,
+      timeIn: selectedDayInfo?.timeIn || '15:30',
+      timeOut: selectedDayInfo?.timeOut || '17:00',
+      memo: memoInput.trim() || `${student.name} 정시 등원 및 실기 수업`
+    };
+
+    if (onUpdateAttendance) {
+      onUpdateAttendance(student.id, selectedDate, newRecord);
+    }
+    setIsEditingMemo(false);
   };
 
   return (
@@ -87,7 +102,7 @@ export default function AttendanceTab({ student }) {
 
       {/* Monthly Calendar View */}
       <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-xs space-y-3">
-        {/* Calendar Title & Month Navigation */}
+        {/* Calendar Title */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <button className="p-1 text-slate-400 hover:text-slate-600"><ChevronLeft className="w-4 h-4" /></button>
           <div className="flex items-center gap-1.5 font-bold text-slate-800 text-sm">
@@ -104,7 +119,7 @@ export default function AttendanceTab({ student }) {
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-500" /> 보강</span>
         </div>
 
-        {/* Days of Week Header */}
+        {/* Days Header */}
         <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-400 pt-1">
           <span className="text-rose-500">일</span>
           <span>월</span>
@@ -118,24 +133,29 @@ export default function AttendanceTab({ student }) {
         {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-1 text-center">
           {calendarCells.map((cell, index) => {
-            if (!cell) {
-              return <div key={`empty-${index}`} className="h-11" />;
-            }
+            if (!cell) return <div key={`empty-${index}`} className="h-11" />;
 
             const { day, dateStr, record } = cell;
             const isSelected = selectedDate === dateStr;
             const badge = record ? getStatusBadge(record.status) : null;
-            const isToday = dateStr === '2026-08-07';
 
             return (
               <button
                 key={dateStr}
-                onClick={() => setSelectedDate(dateStr)}
+                onClick={() => {
+                  setSelectedDate(dateStr);
+                  if (record) {
+                    setStatusInput(record.status);
+                    setMemoInput(record.memo);
+                  } else {
+                    setStatusInput('present');
+                    setMemoInput('');
+                  }
+                  setIsEditingMemo(false);
+                }}
                 className={`h-11 rounded-2xl flex flex-col items-center justify-center relative transition-all duration-150 ${
                   isSelected
                     ? 'bg-rose-500 text-white font-bold shadow-xs scale-105 z-10'
-                    : isToday
-                    ? 'bg-rose-50 text-rose-600 font-bold border border-rose-200'
                     : 'hover:bg-slate-50 text-slate-700 font-medium'
                 }`}
               >
@@ -149,23 +169,80 @@ export default function AttendanceTab({ student }) {
         </div>
       </div>
 
-      {/* Selected Date Detail Info Card */}
+      {/* Selected Date Detail Info / Admin Edit Card */}
       <div className="bg-white rounded-3xl p-4 border border-rose-100/80 shadow-xs space-y-2.5 animate-pop-in">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
             <span>📅 {selectedDate} 수업 기록</span>
           </div>
 
-          {selectedDayInfo ? (
-            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${getStatusBadge(selectedDayInfo.status).bg}`}>
-              {getStatusBadge(selectedDayInfo.status).text}
-            </span>
-          ) : (
-            <span className="text-[11px] text-slate-400 font-medium">수업 없음 / 주말</span>
-          )}
+          <div className="flex items-center gap-2">
+            {selectedDayInfo && (
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${getStatusBadge(selectedDayInfo.status).bg}`}>
+                {getStatusBadge(selectedDayInfo.status).text}
+              </span>
+            )}
+
+            {/* Admin Only Edit Toggle */}
+            {isAdmin && !isEditingMemo && (
+              <button
+                onClick={() => {
+                  setStatusInput(selectedDayInfo?.status || 'present');
+                  setMemoInput(selectedDayInfo?.memo || '');
+                  setIsEditingMemo(true);
+                }}
+                className="text-xs text-rose-500 font-bold hover:underline flex items-center gap-1 bg-rose-50 px-2 py-0.5 rounded-full"
+              >
+                <Edit3 className="w-3 h-3" /> 출석 체크 (원장님)
+              </button>
+            )}
+          </div>
         </div>
 
-        {selectedDayInfo ? (
+        {/* Admin Editing Mode Form */}
+        {isAdmin && isEditingMemo ? (
+          <div className="space-y-3 bg-rose-50/60 p-3 rounded-2xl border border-rose-100 text-xs">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">출석 상태 변경</label>
+              <select
+                value={statusInput}
+                onChange={(e) => setStatusInput(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold"
+              >
+                <option value="present">🟢 출석</option>
+                <option value="late">🟡 지각</option>
+                <option value="absent">🔴 결석</option>
+                <option value="makeup">🟣 보강</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">수업 메모 작성</label>
+              <input
+                type="text"
+                placeholder="선생님의 수업 관찰 및 특이사항 입력..."
+                value={memoInput}
+                onChange={(e) => setMemoInput(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                onClick={() => setIsEditingMemo(false)}
+                className="px-3 py-1.5 bg-slate-200 rounded-xl font-bold text-slate-600"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSaveAttendance}
+                className="px-3 py-1.5 bg-rose-500 text-white rounded-xl font-bold"
+              >
+                저장하기
+              </button>
+            </div>
+          </div>
+        ) : selectedDayInfo ? (
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-2xl text-slate-600">
               <span className="flex items-center gap-1.5 font-medium">

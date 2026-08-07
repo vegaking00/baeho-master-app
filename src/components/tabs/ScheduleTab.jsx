@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { CalendarDays, Sparkles, Clock, MapPin, Tag, ChevronRight, AlertCircle } from 'lucide-react';
+import { CalendarDays, Sparkles, PlusCircle, Trash2 } from 'lucide-react';
 import { SCHEDULE_DATA } from '../../data/mockData';
 
-export default function ScheduleTab() {
+export default function ScheduleTab({ events, isAdmin, onOpenAddScheduleModal, onDeleteSchedule }) {
   const [selectedFilter, setSelectedFilter] = useState('전체');
 
   const filters = ['전체', '원비안내', '특강수업', '휴원', '학원행사', '상담'];
-
   const theme = SCHEDULE_DATA.monthlyTheme;
-  const events = SCHEDULE_DATA.events;
+
+  const scheduleList = events || SCHEDULE_DATA.events;
 
   const filteredEvents = selectedFilter === '전체'
-    ? events
-    : events.filter(e => e.category === selectedFilter);
+    ? scheduleList
+    : scheduleList.filter(e => e.category === selectedFilter);
 
   return (
     <div className="space-y-4 pb-20 animate-fade-in">
@@ -49,21 +49,34 @@ export default function ScheduleTab() {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-        {filters.map((f) => (
+      {/* Filter Tabs & Admin Add Button */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+          {filters.map((f) => (
+            <button
+              key={f}
+              onClick={() => setSelectedFilter(f)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 shrink-0 ${
+                selectedFilter === f
+                  ? 'bg-rose-500 text-white shadow-xs'
+                  : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+
+        {/* Admin Add Schedule Button */}
+        {isAdmin && (
           <button
-            key={f}
-            onClick={() => setSelectedFilter(f)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 shrink-0 ${
-              selectedFilter === f
-                ? 'bg-rose-500 text-white shadow-xs'
-                : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
-            }`}
+            onClick={onOpenAddScheduleModal}
+            className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-3 py-1.5 rounded-full shadow-xs flex items-center gap-1 shrink-0 transition-transform active:scale-95 animate-pulse"
           >
-            {f}
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>+ 일정 등록</span>
           </button>
-        ))}
+        )}
       </div>
 
       {/* Monthly Events List */}
@@ -87,9 +100,26 @@ export default function ScheduleTab() {
                 </span>
               </div>
               
-              <span className="text-[10px] font-extrabold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full">
-                {evt.dDay}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-extrabold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full">
+                  {evt.dDay}
+                </span>
+
+                {/* Admin Delete Icon */}
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`'${evt.title}' 일정을 삭제하시겠습니까?`)) {
+                        onDeleteSchedule(evt.id);
+                      }
+                    }}
+                    className="text-slate-300 hover:text-rose-500 p-1"
+                    title="일정 삭제 (원장님 권한)"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
 
             <h4 className="text-xs font-bold text-slate-800">

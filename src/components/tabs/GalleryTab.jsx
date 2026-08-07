@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Palette, Heart, MessageCircle, Sparkles, Filter, PlusCircle } from 'lucide-react';
+import { Palette, Heart, MessageCircle, Sparkles, Filter, PlusCircle, Trash2 } from 'lucide-react';
 
-export default function GalleryTab({ artworks, student, onSelectArtwork, onOpenAddModal }) {
+export default function GalleryTab({ artworks, student, onSelectArtwork, onOpenAddModal, isAdmin, onDeleteArtwork }) {
   const [selectedCategory, setSelectedCategory] = useState('전체');
 
   const categories = ['전체', '수채화', '일러스트', '오일파스텔', '조소/만들기'];
@@ -29,14 +29,17 @@ export default function GalleryTab({ artworks, student, onSelectArtwork, onOpenA
             </div>
           </div>
 
-          <button
-            onClick={onOpenAddModal}
-            className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-3 py-1.5 rounded-full shadow-xs flex items-center gap-1 shrink-0 transition-transform active:scale-95"
-            title="새 작품 등록 (Storage 없이 URL 전용)"
-          >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span>작품 등록</span>
-          </button>
+          {/* Admin Only Add Artwork Button */}
+          {isAdmin && (
+            <button
+              onClick={onOpenAddModal}
+              className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-3 py-1.5 rounded-full shadow-xs flex items-center gap-1 shrink-0 transition-transform active:scale-95 animate-pulse"
+              title="원장님 전용 작품 등록"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>+ 작품 등록</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -67,12 +70,14 @@ export default function GalleryTab({ artworks, student, onSelectArtwork, onOpenA
             🎨
           </div>
           <p className="text-xs font-bold text-slate-600">등록된 해당 카테고리 작품이 없습니다.</p>
-          <button
-            onClick={onOpenAddModal}
-            className="text-xs text-rose-500 font-bold hover:underline"
-          >
-            + 이미지 URL로 첫 작품 등록하기
-          </button>
+          {isAdmin && (
+            <button
+              onClick={onOpenAddModal}
+              className="text-xs text-rose-500 font-bold hover:underline"
+            >
+              + 원장님 권한으로 새 작품 등록하기
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -80,8 +85,24 @@ export default function GalleryTab({ artworks, student, onSelectArtwork, onOpenA
             <div
               key={art.id}
               onClick={() => onSelectArtwork(art)}
-              className="bg-white rounded-3xl border border-rose-100/80 overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer group active:scale-98"
+              className="bg-white rounded-3xl border border-rose-100/80 overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer group active:scale-98 relative"
             >
+              {/* Admin Only Delete Button */}
+              {isAdmin && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(`'${art.title}' 작품을 삭제하시겠습니까?`)) {
+                      onDeleteArtwork(art.id);
+                    }
+                  }}
+                  className="absolute top-2 right-2 z-10 bg-rose-600/80 hover:bg-rose-600 text-white p-1.5 rounded-full shadow-md transition-all backdrop-blur-xs"
+                  title="작품 삭제 (원장님 권한)"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+
               {/* Artwork Image Container */}
               <div className="relative aspect-4/3 bg-slate-900 overflow-hidden">
                 <img

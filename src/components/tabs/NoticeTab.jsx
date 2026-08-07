@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Megaphone, Search, Pin, Calendar, ChevronRight, Eye, CheckCircle2 } from 'lucide-react';
+import { Megaphone, Search, Pin, Calendar, ChevronRight, Eye, PlusCircle, Trash2 } from 'lucide-react';
 
-export default function NoticeTab({ notices, onSelectNotice }) {
+export default function NoticeTab({ notices, onSelectNotice, isAdmin, onOpenAddNoticeModal, onDeleteNotice }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('전체');
 
@@ -37,12 +37,23 @@ export default function NoticeTab({ notices, onSelectNotice }) {
       <div className="bg-gradient-to-r from-amber-100 via-rose-100 to-orange-100 p-4 rounded-3xl border border-amber-200/60 shadow-xs flex items-center justify-between">
         <div>
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-rose-500" /> 학원 소식 & 알림장
+            <Megaphone className="w-5 h-5 text-rose-500" /> 리더스아트 공지사항
           </h2>
           <p className="text-xs text-slate-600 mt-1">
-            중요한 원내 일정 및 교육 소식을 확인하세요.
+            원내 주요 행사 및 신연정 원장님 안내를 확인하세요.
           </p>
         </div>
+
+        {/* Admin Only Add Notice Button */}
+        {isAdmin && (
+          <button
+            onClick={onOpenAddNoticeModal}
+            className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-3 py-1.5 rounded-full shadow-xs flex items-center gap-1 shrink-0 transition-transform active:scale-95 animate-pulse"
+          >
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>+ 공지 작성</span>
+          </button>
+        )}
       </div>
 
       {/* Search & Tag Filter Bar */}
@@ -97,16 +108,34 @@ export default function NoticeTab({ notices, onSelectNotice }) {
                 <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
               )}
 
-              <div className="flex items-center gap-2 mb-1.5">
-                {notice.tag === '중요' && (
-                  <Pin className="w-3.5 h-3.5 text-rose-500 fill-rose-500 shrink-0" />
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  {notice.tag === '중요' && (
+                    <Pin className="w-3.5 h-3.5 text-rose-500 fill-rose-500 shrink-0" />
+                  )}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${getTagBadge(notice.tag)}`}>
+                    {notice.tag}
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                    <Calendar className="w-3 h-3" /> {notice.date}
+                  </span>
+                </div>
+
+                {/* Admin Delete Icon */}
+                {isAdmin && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.confirm(`'${notice.title}' 공지를 삭제하시겠습니까?`)) {
+                        onDeleteNotice(notice.id);
+                      }
+                    }}
+                    className="text-slate-300 hover:text-rose-500 p-1"
+                    title="공지 삭제 (원장님 권한)"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 )}
-                <span className={`text-[10px] px-2 py-0.5 rounded-full ${getTagBadge(notice.tag)}`}>
-                  {notice.tag}
-                </span>
-                <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> {notice.date}
-                </span>
               </div>
 
               <h3 className="text-xs font-bold text-slate-800 line-clamp-1">
