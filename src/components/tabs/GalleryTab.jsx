@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Palette, Heart, MessageCircle, Sparkles, Filter } from 'lucide-react';
+import { Palette, Heart, MessageCircle, Sparkles, Filter, PlusCircle } from 'lucide-react';
 
-export default function GalleryTab({ artworks, student, onSelectArtwork }) {
+export default function GalleryTab({ artworks, student, onSelectArtwork, onOpenAddModal }) {
   const [selectedCategory, setSelectedCategory] = useState('전체');
 
   const categories = ['전체', '수채화', '일러스트', '오일파스텔', '조소/만들기'];
@@ -16,7 +16,7 @@ export default function GalleryTab({ artworks, student, onSelectArtwork }) {
     <div className="space-y-4 pb-20 animate-fade-in">
       {/* Student Art Gallery Header Banner */}
       <div className="bg-gradient-to-r from-rose-100 via-amber-100 to-sky-100 p-4 rounded-3xl border border-rose-200/50 shadow-xs relative overflow-hidden">
-        <div className="relative z-10">
+        <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">{student.avatarEmoji}</span>
             <div>
@@ -28,9 +28,15 @@ export default function GalleryTab({ artworks, student, onSelectArtwork }) {
               </p>
             </div>
           </div>
-        </div>
-        <div className="absolute right-2 bottom-0 opacity-20 pointer-events-none">
-          <Palette className="w-24 h-24 text-rose-400" />
+
+          <button
+            onClick={onOpenAddModal}
+            className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-3 py-1.5 rounded-full shadow-xs flex items-center gap-1 shrink-0 transition-transform active:scale-95"
+            title="새 작품 등록 (Storage 없이 URL 전용)"
+          >
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>작품 등록</span>
+          </button>
         </div>
       </div>
 
@@ -61,7 +67,12 @@ export default function GalleryTab({ artworks, student, onSelectArtwork }) {
             🎨
           </div>
           <p className="text-xs font-bold text-slate-600">등록된 해당 카테고리 작품이 없습니다.</p>
-          <p className="text-[11px] text-slate-400">학원에서 새로 수업한 작품이 업로드될 예정입니다!</p>
+          <button
+            onClick={onOpenAddModal}
+            className="text-xs text-rose-500 font-bold hover:underline"
+          >
+            + 이미지 URL로 첫 작품 등록하기
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -72,11 +83,15 @@ export default function GalleryTab({ artworks, student, onSelectArtwork }) {
               className="bg-white rounded-3xl border border-rose-100/80 overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer group active:scale-98"
             >
               {/* Artwork Image Container */}
-              <div className="relative aspect-4/3 bg-slate-100 overflow-hidden">
+              <div className="relative aspect-4/3 bg-slate-900 overflow-hidden">
                 <img
                   src={art.imageUrl}
                   alt={art.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/400x300?text=Artwork+Image';
+                  }}
                 />
                 <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs text-rose-700 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-2xs">
                   {art.category}
