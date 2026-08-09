@@ -12,6 +12,8 @@ export const STUDENTS = [
     id: "s1",
     name: "김우진",
     grade: "초등 3학년 (10세)",
+    ageGroup: "초등저학년", // 초등 저학년 (1~3학년)
+    ageGroupLabel: "초등 저학년 (1~3학년)",
     class: "융합 조형 & 수채화반",
     avatarColor: "bg-sky-400",
     avatarEmoji: "👦",
@@ -21,6 +23,8 @@ export const STUDENTS = [
     id: "s2",
     name: "배시우",
     grade: "7세 유치부",
+    ageGroup: "유치부", // 유치부 (5~7세)
+    ageGroupLabel: "유치부 (5~7세)",
     class: "창의 표현 & 클레이반",
     avatarColor: "bg-amber-400",
     avatarEmoji: "👧",
@@ -30,6 +34,8 @@ export const STUDENTS = [
     id: "s3",
     name: "배단우",
     grade: "초등 5학년 (12세)",
+    ageGroup: "초등고학년", // 초등 고학년 (4~6학년)
+    ageGroupLabel: "초등 고학년 (4~6학년)",
     class: "웹툰 일러스트 & 입체 조소반",
     avatarColor: "bg-purple-400",
     avatarEmoji: "🧑",
@@ -38,10 +44,13 @@ export const STUDENTS = [
 ];
 
 export const ARTWORKS = [
+  // --- 2026 최신 작품 ---
   {
     id: "art-5",
     studentId: "s3",
     title: "미래의 친환경 에코 시티",
+    year: "2026",
+    month: "08월",
     date: "2026.08.06",
     category: "일러스트",
     imageUrl: "/images/artwork_illust_danwoo.jpg",
@@ -60,6 +69,8 @@ export const ARTWORKS = [
     id: "art-6",
     studentId: "s3",
     title: "메카닉 로봇 아티스트",
+    year: "2026",
+    month: "08월",
     date: "2026.08.01",
     category: "조소/만들기",
     imageUrl: "/images/artwork_sculpture_danwoo.jpg",
@@ -77,6 +88,8 @@ export const ARTWORKS = [
     id: "art-1",
     studentId: "s1",
     title: "노란 해바라기 병 속의 햇살",
+    year: "2026",
+    month: "08월",
     date: "2026.08.05",
     category: "수채화",
     imageUrl: "/images/artwork_sunflower.jpg",
@@ -94,6 +107,8 @@ export const ARTWORKS = [
     id: "art-2",
     studentId: "s1",
     title: "우주를 여행하는 야옹이 대원",
+    year: "2026",
+    month: "07월",
     date: "2026.07.28",
     category: "일러스트",
     imageUrl: "/images/artwork_space_cat.jpg",
@@ -109,6 +124,8 @@ export const ARTWORKS = [
     id: "art-3",
     studentId: "s1",
     title: "돌고래가 도약하는 붉은 노을 바다",
+    year: "2026",
+    month: "07월",
     date: "2026.07.14",
     category: "오일파스텔",
     imageUrl: "/images/artwork_city_sunset.jpg",
@@ -124,6 +141,8 @@ export const ARTWORKS = [
     id: "art-4",
     studentId: "s2",
     title: "신나는 미소 짓는 초록 공룡 친구",
+    year: "2026",
+    month: "08월",
     date: "2026.08.02",
     category: "조소/만들기",
     imageUrl: "/images/artwork_clay_dino.jpg",
@@ -136,6 +155,59 @@ export const ARTWORKS = [
     comments: [
       { id: 1, name: "시우 아빠", date: "2026.08.02 19:40", text: "시우 공룡 너무 멋지다!! 주미 선생님 칭찬에 시우가 너무 좋아해요~" }
     ]
+  },
+
+  // --- 2025 과거 성장 히스토리 작품 ---
+  {
+    id: "art-hist-danwoo-1",
+    studentId: "s3",
+    title: "2025 쿵푸팬더 동화 드로잉 (11세 초등 4학년)",
+    year: "2025",
+    month: "10월",
+    date: "2025.10.15",
+    category: "일러스트",
+    imageUrl: "/images/artwork_illust_danwoo.jpg",
+    materials: "색연필, 동화 마카",
+    teacherName: "신연정 원장님",
+    teacherAvatar: "👩‍🎨",
+    feedback: "[11세 성장 기록] 1년 전 단우의 작품입니다! 이때부터 캐릭터의 동작선 표현 감각이 뛰어났으며, 현재 12세가 되어 디지털 드로잉과 입체 조소로 스킬이 무척 비약적으로 성장했습니다!",
+    tags: ["#과거성장기록", "#2025작품", "#동화드로잉"],
+    likes: 18,
+    comments: []
+  },
+  {
+    id: "art-hist-woojin-1",
+    studentId: "s1",
+    title: "2025 수채화 첫걸음 - 무지개 물고기 (9세 초등 2학년)",
+    year: "2025",
+    month: "09월",
+    date: "2025.09.20",
+    category: "수채화",
+    imageUrl: "/images/artwork_sunflower.jpg",
+    materials: "기초 수채화 물감, 8절지",
+    teacherName: "주미 선생님",
+    teacherAvatar: "🎨",
+    feedback: "[9세 성장 기록] 우진이가 학원에 처음 왔을 때 만든 수채화 작품이에요! 물 조절법을 배우던 때인데 1년 사이에 붓터치와 농도 제어 능력이 정말 장족의 발전을 이루었습니다!",
+    tags: ["#과거성장기록", "#2025작품", "#수채화기초"],
+    likes: 15,
+    comments: []
+  },
+  {
+    id: "art-hist-siwoo-1",
+    studentId: "s2",
+    title: "2025 알록달록 무지개 동산 (6세 유치부)",
+    year: "2025",
+    month: "11월",
+    date: "2025.11.08",
+    category: "조소/만들기",
+    imageUrl: "/images/artwork_clay_dino.jpg",
+    materials: "컬러 점토, 나무 스틱",
+    teacherName: "주미 선생님",
+    teacherAvatar: "🎨",
+    feedback: "[6세 성장 기록] 6세 시절 시우의 앙증맞은 클레이 조형입니다! 손가락 소근육 발달이 진행되면서 7세가 된 지금 공룡 입체 조형까지 완성하는 근사한 성장을 보여주었습니다!",
+    tags: ["#과거성장기록", "#2025작품", "#유치부클레이"],
+    likes: 12,
+    comments: []
   }
 ];
 
@@ -237,6 +309,58 @@ export const ATTENDANCE_DATA = {
     }
   }
 };
+
+// --- 원비 수납 데이터 (TUITION_DATA) ---
+export const TUITION_DATA = [
+  {
+    id: "tui-s3-202608",
+    studentId: "s3",
+    studentName: "배단우",
+    grade: "초등 5학년 (12세)",
+    month: "2026년 08월",
+    courseName: "웹툰 일러스트 & 입체 조소 전문반 (주 3회)",
+    amount: 220000,
+    status: "paid", // 'paid' | 'unpaid' | 'pending'
+    statusText: "수납 완료",
+    dueDate: "2026.08.05",
+    paidDate: "2026.08.02 14:10",
+    paymentMethod: "신용카드 (KB국민 4125-****)",
+    receiptNo: "RECEIPT-202608-S301",
+    note: "8월 여름방학 특강 및 도록 제본비 포함"
+  },
+  {
+    id: "tui-s1-202608",
+    studentId: "s1",
+    studentName: "김우진",
+    grade: "초등 3학년 (10세)",
+    month: "2026년 08월",
+    courseName: "융합 조형 & 수채화 정규반 (주 2회)",
+    amount: 180000,
+    status: "paid",
+    statusText: "수납 완료",
+    dueDate: "2026.08.05",
+    paidDate: "2026.08.04 11:30",
+    paymentMethod: "계좌이체 (신한은행)",
+    receiptNo: "RECEIPT-202608-S101",
+    note: "정기 자동 수납"
+  },
+  {
+    id: "tui-s2-202608",
+    studentId: "s2",
+    studentName: "배시우",
+    grade: "7세 유치부",
+    month: "2026년 08월",
+    courseName: "창의 표현 & 입체 클레이반 (주 2회)",
+    amount: 160000,
+    status: "pending",
+    statusText: "납부 예정",
+    dueDate: "2026.08.10",
+    paidDate: "-",
+    paymentMethod: "원내 현장 결제 / 모바일 결제 예정",
+    receiptNo: "RECEIPT-PENDING-S2",
+    note: "8월 둘째 주 현장 납부 안내 예정"
+  }
+];
 
 export const SCHEDULE_DATA = {
   monthlyTheme: {

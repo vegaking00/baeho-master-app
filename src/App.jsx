@@ -5,18 +5,20 @@ import GalleryTab from './components/tabs/GalleryTab';
 import NoticeTab from './components/tabs/NoticeTab';
 import AttendanceTab from './components/tabs/AttendanceTab';
 import ScheduleTab from './components/tabs/ScheduleTab';
+import TuitionTab from './components/tabs/TuitionTab';
 import ArtworkModal from './components/modals/ArtworkModal';
 import NoticeModal from './components/modals/NoticeModal';
 import AddArtworkModal from './components/modals/AddArtworkModal';
 import AddNoticeModal from './components/modals/AddNoticeModal';
 import AddScheduleModal from './components/modals/AddScheduleModal';
 import AdminLoginModal from './components/modals/AdminLoginModal';
-import { STUDENTS, ARTWORKS, NOTICES, ATTENDANCE_DATA, SCHEDULE_DATA } from './data/mockData';
+import { STUDENTS, ARTWORKS, NOTICES, ATTENDANCE_DATA, SCHEDULE_DATA, TUITION_DATA } from './data/mockData';
 import { 
   subscribeGallery, 
   subscribeNotices, 
   subscribeAttendance, 
   subscribeSchedules,
+  subscribeTuition,
   subscribeAuthStatus,
   adminLogout,
   addArtworkToFirestore,
@@ -26,6 +28,7 @@ import {
   updateAttendanceInFirestore,
   addScheduleToFirestore,
   deleteScheduleFromFirestore,
+  updateTuitionInFirestore,
   addCommentToFirestore, 
   toggleLikeInFirestore,
   seedInitialFirestoreData
@@ -52,6 +55,7 @@ export default function App() {
   const [noticesList, setNoticesList] = useState(NOTICES);
   const [attendanceData, setAttendanceData] = useState(ATTENDANCE_DATA);
   const [schedulesList, setSchedulesList] = useState(SCHEDULE_DATA.events);
+  const [tuitionList, setTuitionList] = useState(TUITION_DATA);
 
   const currentStudent = STUDENTS.find(s => s.id === selectedStudentId) || STUDENTS[0];
   const unreadNoticeCount = noticesList.filter(n => !n.isRead).length;
@@ -78,31 +82,31 @@ export default function App() {
     const unsubNotices = subscribeNotices((data) => setNoticesList(data));
     const unsubAttendance = subscribeAttendance((data) => setAttendanceData(data));
     const unsubSchedules = subscribeSchedules((data) => setSchedulesList(data));
+    const unsubTuition = subscribeTuition((data) => setTuitionList(data));
 
     return () => {
       unsubGallery();
       unsubNotices();
       unsubAttendance();
       unsubSchedules();
+      unsubTuition();
     };
   }, []);
 
   // --- ADMIN ACTIONS ---
 
-  // Admin Login success handler
   const handleLoginSuccess = (user) => {
     setIsAdmin(true);
     setAdminUser(user);
   };
 
-  // Admin Logout handler
   const handleLogout = async () => {
     await adminLogout();
     setIsAdmin(false);
     setAdminUser(null);
   };
 
-  // 1. Add Artwork (gallery)
+  // Add Artwork (gallery)
   const handleAddArtwork = async (newArtwork) => {
     const tempId = `art-${Date.now()}`;
     const artWithId = { id: tempId, ...newArtwork };
@@ -111,13 +115,12 @@ export default function App() {
     await addArtworkToFirestore(newArtwork);
   };
 
-  // Delete Artwork
   const handleDeleteArtwork = async (artworkId) => {
     setArtworksList(prev => prev.filter(a => a.id !== artworkId));
     await deleteArtworkFromFirestore(artworkId);
   };
 
-  // 2. Add Notice (notices)
+  // Add Notice (notices)
   const handleAddNotice = async (newNotice) => {
     const tempId = `not-${Date.now()}`;
     const noticeWithId = { id: tempId, ...newNotice };
@@ -126,13 +129,12 @@ export default function App() {
     await addNoticeToFirestore(newNotice);
   };
 
-  // Delete Notice
   const handleDeleteNotice = async (noticeId) => {
     setNoticesList(prev => prev.filter(n => n.id !== noticeId));
     await deleteNoticeFromFirestore(noticeId);
   };
 
-  // 3. Update Attendance (attendance)
+  // Update Attendance (attendance)
   const handleUpdateAttendance = async (studentId, dateStr, dayRecord) => {
     setAttendanceData(prev => {
       const studentData = prev[studentId] || { summary: { totalDays: 10, presentDays: 9, lateDays: 1, absentDays: 0, makeupDays: 0, attendanceRate: 90 }, days: {} };
@@ -146,7 +148,7 @@ export default function App() {
     await updateAttendanceInFirestore(studentId, dateStr, dayRecord, null);
   };
 
-  // 4. Add Schedule (schedules)
+  // Add Schedule (schedules)
   const handleAddSchedule = async (newSchedule) => {
     const tempId = `sch-${Date.now()}`;
     const schWithId = { id: tempId, ...newSchedule };
@@ -155,10 +157,15 @@ export default function App() {
     await addScheduleToFirestore(newSchedule);
   };
 
-  // Delete Schedule
   const handleDeleteSchedule = async (scheduleId) => {
     setSchedulesList(prev => prev.filter(s => s.id !== scheduleId));
     await deleteScheduleFromFirestore(scheduleId);
+  };
+
+  // Update Tuition (tuition)
+  const handleUpdateTuition = async (tuitionId, updateData) => {
+    setTuitionList(prev => prev.map(t => t.id === tuitionId ? { ...t, ...updateData } : t));
+    await updateTuitionInFirestore(tuitionId, updateData);
   };
 
   // Parent Interactions (Likes & Comments)
@@ -246,6 +253,15 @@ export default function App() {
               student={currentStudent}
               isAdmin={isAdmin}
               onUpdateAttendance={handleUpdateAttendance}
+            />
+          )}
+
+          {activeTab === 'tuition' && (
+            <TuitionTab
+              student={currentStudent}
+              tuitionList={tuitionList}
+              isAdmin={isAdmin}
+              onUpdateTuition={handleUpdateTuition}
             />
           )}
 

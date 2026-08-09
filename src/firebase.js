@@ -17,10 +17,9 @@ import {
   getAuth, 
   signInWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged,
-  createUserWithEmailAndPassword
+  onAuthStateChanged
 } from "firebase/auth";
-import { ARTWORKS, NOTICES, ATTENDANCE_DATA, SCHEDULE_DATA } from "./data/mockData";
+import { ARTWORKS, NOTICES, ATTENDANCE_DATA, SCHEDULE_DATA, TUITION_DATA } from "./data/mockData";
 
 // 사용자 지정 Firebase 설정 (baeho-art-app)
 const firebaseConfig = {
@@ -47,7 +46,6 @@ export const adminLogin = async (email, password) => {
     return { success: true, user: userCredential.user };
   } catch (error) {
     console.warn("Auth login fallback or error:", error.code, error.message);
-    // 원장님 기본 이메일/비밀번호 데모 지원 (e.g. director@leadersart.com / 123456)
     if (email === "director@leadersart.com" && password === "123456") {
       return { success: true, user: { email, displayName: "신연정 원장님", uid: "admin-director" } };
     }
@@ -70,15 +68,13 @@ export const subscribeAuthStatus = (callback) => {
 };
 
 // ----------------------------------------------------
-// 2. Firestore 실시간 구독 (gallery, notices, attendance, schedules)
+// 2. Firestore 실시간 구독 (gallery, notices, attendance, schedules, tuition)
 // ----------------------------------------------------
 
-// [gallery 컬렉션] 작품 갤러리 구독
 export const subscribeGallery = (onUpdate) => {
   const galleryRef = collection(db, "gallery");
   return onSnapshot(galleryRef, (snapshot) => {
     if (snapshot.empty) {
-      // 데이터가 없을 경우 시드 데이터 전송 및 초기화 시도
       onUpdate(ARTWORKS);
     } else {
       const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -90,7 +86,6 @@ export const subscribeGallery = (onUpdate) => {
   });
 };
 
-// [notices 컬렉션] 공지사항 구독
 export const subscribeNotices = (onUpdate) => {
   const noticesRef = collection(db, "notices");
   return onSnapshot(noticesRef, (snapshot) => {
@@ -106,7 +101,6 @@ export const subscribeNotices = (onUpdate) => {
   });
 };
 
-// [attendance 컬렉션] 출석 현황 구독
 export const subscribeAttendance = (onUpdate) => {
   const attendanceRef = collection(db, "attendance");
   return onSnapshot(attendanceRef, (snapshot) => {
@@ -125,7 +119,6 @@ export const subscribeAttendance = (onUpdate) => {
   });
 };
 
-// [schedules 컬렉션] 학원 일정 구독
 export const subscribeSchedules = (onUpdate) => {
   const schedulesRef = collection(db, "schedules");
   return onSnapshot(schedulesRef, (snapshot) => {
@@ -141,11 +134,26 @@ export const subscribeSchedules = (onUpdate) => {
   });
 };
 
+// [tuition 컬렉션] 원비 수납 현황 구독
+export const subscribeTuition = (onUpdate) => {
+  const tuitionRef = collection(db, "tuition");
+  return onSnapshot(tuitionRef, (snapshot) => {
+    if (snapshot.empty) {
+      onUpdate(TUITION_DATA);
+    } else {
+      const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      onUpdate(list);
+    }
+  }, (err) => {
+    console.warn("Firestore tuition 구독 실패, 기본 데이터 사용:", err);
+    onUpdate(TUITION_DATA);
+  });
+};
+
 // ----------------------------------------------------
 // 3. 관리자(원장님) Firestore C.R.U.D 명령 헬퍼
 // ----------------------------------------------------
 
-// 작품 등록 (gallery 컬렉션)
 export const addArtworkToFirestore = async (artworkData) => {
   try {
     const docRef = await addDoc(collection(db, "gallery"), {
@@ -159,7 +167,6 @@ export const addArtworkToFirestore = async (artworkData) => {
   }
 };
 
-// 작품 삭제 (gallery 컬렉션)
 export const deleteArtworkFromFirestore = async (artworkId) => {
   try {
     await deleteDoc(doc(db, "gallery", artworkId));
@@ -168,7 +175,6 @@ export const deleteArtworkFromFirestore = async (artworkId) => {
   }
 };
 
-// 공지사항 작성 (notices 컬렉션)
 export const addNoticeToFirestore = async (noticeData) => {
   try {
     const docRef = await addDoc(collection(db, "notices"), {
@@ -183,7 +189,6 @@ export const addNoticeToFirestore = async (noticeData) => {
   }
 };
 
-// 공지사항 삭제 (notices 컬렉션)
 export const deleteNoticeFromFirestore = async (noticeId) => {
   try {
     await deleteDoc(doc(db, "notices", noticeId));
@@ -192,7 +197,6 @@ export const deleteNoticeFromFirestore = async (noticeId) => {
   }
 };
 
-// 출석 상태 업데이트 (attendance 컬렉션 - studentId 키 기반)
 export const updateAttendanceInFirestore = async (studentId, dateStr, dayRecord, newSummary) => {
   try {
     const attDocRef = doc(db, "attendance", studentId);
@@ -209,7 +213,6 @@ export const updateAttendanceInFirestore = async (studentId, dateStr, dayRecord,
   }
 };
 
-// 학원 일정 등록 (schedules 컬렉션)
 export const addScheduleToFirestore = async (scheduleData) => {
   try {
     const docRef = await addDoc(collection(db, "schedules"), {
@@ -223,7 +226,6 @@ export const addScheduleToFirestore = async (scheduleData) => {
   }
 };
 
-// 학원 일정 삭제 (schedules 컬렉션)
 export const deleteScheduleFromFirestore = async (scheduleId) => {
   try {
     await deleteDoc(doc(db, "schedules", scheduleId));
@@ -232,7 +234,16 @@ export const deleteScheduleFromFirestore = async (scheduleId) => {
   }
 };
 
-// 학부모 칭찬 댓글 추가 (gallery 컬렉션 문서 내 comments 배열)
+// 원비 수납 상태 업데이트 (tuition 컬렉션)
+export const updateTuitionInFirestore = async (tuitionId, updateData) => {
+  try {
+    const tuiRef = doc(db, "tuition", tuitionId);
+    await updateDoc(tuiRef, updateData);
+  } catch (e) {
+    console.error("Firestore 원비 수납 업데이트 오류:", e);
+  }
+};
+
 export const addCommentToFirestore = async (artworkId, comment) => {
   try {
     const artRef = doc(db, "gallery", artworkId);
@@ -244,7 +255,6 @@ export const addCommentToFirestore = async (artworkId, comment) => {
   }
 };
 
-// 작품 좋아요 토글
 export const toggleLikeInFirestore = async (artworkId, isLiked) => {
   try {
     const artRef = doc(db, "gallery", artworkId);
@@ -257,44 +267,45 @@ export const toggleLikeInFirestore = async (artworkId, isLiked) => {
 };
 
 // ----------------------------------------------------
-// 4. Firestore 초기 시드 데이터 생성 헬퍼 (초기 1회 자동 세팅용)
+// 4. Firestore 초기 시드 데이터 생성 헬퍼
 // ----------------------------------------------------
 
 export const seedInitialFirestoreData = async () => {
   try {
-    // gallery 컬렉션 시드
     const galSnap = await getDocs(collection(db, "gallery"));
     if (galSnap.empty) {
       for (const art of ARTWORKS) {
         await addDoc(collection(db, "gallery"), art);
       }
-      console.log("✅ Firestore gallery 초기 데이터 세팅 완료");
     }
 
-    // notices 컬렉션 시드
     const notSnap = await getDocs(collection(db, "notices"));
     if (notSnap.empty) {
       for (const n of NOTICES) {
         await addDoc(collection(db, "notices"), n);
       }
-      console.log("✅ Firestore notices 초기 데이터 세팅 완료");
     }
 
-    // attendance 컬렉션 시드
     for (const sId of Object.keys(ATTENDANCE_DATA)) {
       const attDocRef = doc(db, "attendance", sId);
       await setDoc(attDocRef, ATTENDANCE_DATA[sId], { merge: true });
     }
 
-    // schedules 컬렉션 시드
     const schSnap = await getDocs(collection(db, "schedules"));
     if (schSnap.empty) {
       for (const s of SCHEDULE_DATA.events) {
         await addDoc(collection(db, "schedules"), s);
       }
-      console.log("✅ Firestore schedules 초기 데이터 세팅 완료");
+    }
+
+    const tuiSnap = await getDocs(collection(db, "tuition"));
+    if (tuiSnap.empty) {
+      for (const t of TUITION_DATA) {
+        const tDocRef = doc(db, "tuition", t.id);
+        await setDoc(tDocRef, t, { merge: true });
+      }
     }
   } catch (err) {
-    console.warn("Firestore 시드 데이터 설정 중 권한 또는 네트워크 경고:", err.message);
+    console.warn("Firestore 시드 데이터 설정 경고:", err.message);
   }
 };
