@@ -12,6 +12,7 @@ import AddArtworkModal from './components/modals/AddArtworkModal';
 import AddNoticeModal from './components/modals/AddNoticeModal';
 import AddScheduleModal from './components/modals/AddScheduleModal';
 import AdminLoginModal from './components/modals/AdminLoginModal';
+import ParentLoginModal from './components/modals/ParentLoginModal';
 import { STUDENTS, ARTWORKS, NOTICES, ATTENDANCE_DATA, SCHEDULE_DATA, TUITION_DATA } from './data/mockData';
 import { 
   subscribeGallery, 
@@ -45,6 +46,7 @@ export default function App() {
   const [showAddNoticeModal, setShowAddNoticeModal] = useState(false);
   const [showAddScheduleModal, setShowAddScheduleModal] = useState(false);
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+  const [showParentModal, setShowParentModal] = useState(false);
 
   // Admin Auth state
   const [isAdmin, setIsAdmin] = useState(false);
@@ -93,7 +95,7 @@ export default function App() {
     };
   }, []);
 
-  // --- ADMIN ACTIONS ---
+  // --- ACTIONS ---
 
   const handleLoginSuccess = (user) => {
     setIsAdmin(true);
@@ -106,7 +108,6 @@ export default function App() {
     setAdminUser(null);
   };
 
-  // Add Artwork (gallery)
   const handleAddArtwork = async (newArtwork) => {
     const tempId = `art-${Date.now()}`;
     const artWithId = { id: tempId, ...newArtwork };
@@ -120,7 +121,6 @@ export default function App() {
     await deleteArtworkFromFirestore(artworkId);
   };
 
-  // Add Notice (notices)
   const handleAddNotice = async (newNotice) => {
     const tempId = `not-${Date.now()}`;
     const noticeWithId = { id: tempId, ...newNotice };
@@ -134,7 +134,6 @@ export default function App() {
     await deleteNoticeFromFirestore(noticeId);
   };
 
-  // Update Attendance (attendance)
   const handleUpdateAttendance = async (studentId, dateStr, dayRecord) => {
     setAttendanceData(prev => {
       const studentData = prev[studentId] || { summary: { totalDays: 10, presentDays: 9, lateDays: 1, absentDays: 0, makeupDays: 0, attendanceRate: 90 }, days: {} };
@@ -148,7 +147,6 @@ export default function App() {
     await updateAttendanceInFirestore(studentId, dateStr, dayRecord, null);
   };
 
-  // Add Schedule (schedules)
   const handleAddSchedule = async (newSchedule) => {
     const tempId = `sch-${Date.now()}`;
     const schWithId = { id: tempId, ...newSchedule };
@@ -162,13 +160,11 @@ export default function App() {
     await deleteScheduleFromFirestore(scheduleId);
   };
 
-  // Update Tuition (tuition)
   const handleUpdateTuition = async (tuitionId, updateData) => {
     setTuitionList(prev => prev.map(t => t.id === tuitionId ? { ...t, ...updateData } : t));
     await updateTuitionInFirestore(tuitionId, updateData);
   };
 
-  // Parent Interactions (Likes & Comments)
   const handleToggleLike = async (artworkId, isLiked) => {
     setArtworksList(prev => prev.map(art => {
       if (art.id === artworkId) {
@@ -219,6 +215,7 @@ export default function App() {
           onSelectStudent={setSelectedStudentId}
           isAdmin={isAdmin}
           onOpenLoginModal={() => setShowAdminLoginModal(true)}
+          onOpenParentModal={() => setShowParentModal(true)}
           onLogout={handleLogout}
         />
 
@@ -326,6 +323,14 @@ export default function App() {
           <AdminLoginModal
             onClose={() => setShowAdminLoginModal(false)}
             onLoginSuccess={handleLoginSuccess}
+          />
+        )}
+
+        {showParentModal && (
+          <ParentLoginModal
+            currentStudentId={selectedStudentId}
+            onClose={() => setShowParentModal(false)}
+            onSelectChild={setSelectedStudentId}
           />
         )}
       </div>
