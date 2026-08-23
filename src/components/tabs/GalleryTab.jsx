@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Sparkles, Calendar, Heart, MessageCircle, Plus, ChevronRight, Clock, Award, Filter, ShieldCheck, UserCheck, X } from 'lucide-react';
-import { STUDENTS, TUITION_DATA } from '../../data/mockData';
+import { Sparkles, Calendar, Heart, MessageCircle, Plus, ChevronRight, Clock, Award, Filter, ShieldCheck, UserCheck, X, CheckCircle, FileText, CreditCard } from 'lucide-react';
+import { STUDENTS, TUITION_DATA, ATTENDANCE_DATA } from '../../data/mockData';
 
 export default function GalleryTab({ 
   artworks, 
@@ -26,6 +26,14 @@ export default function GalleryTab({
     { key: '초등고학년', label: '초등 고학년 (4~6학년)' }
   ];
 
+  // Handle student selection from age group modal: Reset filters so student's artworks show instantly!
+  const handleSelectStudentFromModal = (studentId) => {
+    onSelectStudent(studentId);
+    setSelectedAgeGroup('전체'); // Reset age filter so all artworks of selected student display cleanly
+    setSelectedCategory('전체'); // Reset category filter
+    setAgeModalGroup(null); // Close modal
+  };
+
   // When user clicks an age group pill
   const handleAgeGroupPillClick = (key) => {
     setSelectedAgeGroup(key);
@@ -34,11 +42,10 @@ export default function GalleryTab({
     }
   };
 
-  // Filter student's artworks
-  // 1. Current Student artworks
+  // 1. Filter Selected Student's Artworks
   const studentArtworks = artworks.filter(a => a.studentId === student.id);
   
-  // If no artwork found for this exact student (fallback safety), show artworks matching age group or all
+  // Fallback safety: If no artwork matched by studentId, show matching age group artworks
   const displayedBaseArtworks = studentArtworks.length > 0 
     ? studentArtworks 
     : artworks.filter(a => a.ageGroup === student.ageGroup);
@@ -53,6 +60,19 @@ export default function GalleryTab({
   const currentArtworks = filteredArtworks.filter(a => a.year === '2026' || !a.year);
   const pastArtworks = filteredArtworks.filter(a => a.year === '2025');
 
+  // Student Attendance & Tuition Summary Data for Admin One-Stop Inspector
+  const studentTuition = TUITION_DATA.find(t => t.studentId === student.id) || {
+    amount: 180000,
+    status: 'pending',
+    statusText: '납부 예정'
+  };
+
+  const studentAttendance = ATTENDANCE_DATA[student.id]?.summary || {
+    attendanceRate: 95,
+    presentDays: 9,
+    totalDays: 10
+  };
+
   // Modal Student List for Selected Age Group
   const getAgeGroupStudents = (groupKey) => {
     if (groupKey === '유치부') return STUDENTS.filter(s => s.age <= 7);
@@ -66,24 +86,26 @@ export default function GalleryTab({
   return (
     <div className="space-y-4 pb-20 animate-fade-in">
       
-      {/* Top Banner: Selected Student Portfolio Info */}
-      <div className="bg-gradient-to-r from-rose-100 via-amber-100 to-sky-100 p-4 rounded-3xl border border-rose-200/60 shadow-xs relative overflow-hidden">
-        <div className="flex items-center justify-between relative z-10">
+      {/* ------------------------------------------------------------------ */}
+      {/* TOP COMPREHENSIVE STUDENT RECORD CARD (학생 종합 기록부 한눈에 보기) */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="bg-gradient-to-r from-rose-100 via-purple-100 to-amber-100 p-4 rounded-3xl border border-rose-200/80 shadow-xs space-y-3 relative overflow-hidden">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-white text-2xl flex items-center justify-center shadow-sm border border-rose-200">
+            <div className="w-12 h-12 rounded-2xl bg-white text-2xl flex items-center justify-center shadow-sm border border-rose-200 shrink-0">
               {student.avatarEmoji}
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h2 className="text-base font-extrabold text-slate-800 tracking-tight">
-                  {student.name}의 아티스트 작품집
+                <h2 className="text-base font-black text-slate-800 tracking-tight">
+                  {student.name} 학생 통합 기록부 📋
                 </h2>
                 <span className="bg-rose-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
                   {student.grade}
                 </span>
               </div>
               <p className="text-xs text-slate-600 mt-0.5 font-medium">
-                총 <strong className="text-rose-600 font-bold">{displayedBaseArtworks.length}개</strong>의 미술 작품 & 과거 성장 기록 보유
+                {student.class} • 지도: {student.teacher}
               </p>
             </div>
           </div>
@@ -97,6 +119,29 @@ export default function GalleryTab({
               <Plus className="w-4 h-4" /> 작품 등록
             </button>
           )}
+        </div>
+
+        {/* 3-Column Summary Stats: Artworks + Attendance + Tuition in ONE glance! */}
+        <div className="grid grid-cols-3 gap-2 text-center text-xs pt-1 border-t border-rose-200/60">
+          <div className="bg-white/80 backdrop-blur-xs p-2 rounded-2xl border border-rose-100">
+            <div className="text-[10px] text-slate-500 font-bold">🎨 보유 작품</div>
+            <div className="text-sm font-black text-rose-600">{displayedBaseArtworks.length}개</div>
+            <div className="text-[9px] text-slate-400">(2026/2025 포함)</div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-xs p-2 rounded-2xl border border-emerald-100">
+            <div className="text-[10px] text-slate-500 font-bold">📅 출석률</div>
+            <div className="text-sm font-black text-emerald-600">{studentAttendance.attendanceRate}%</div>
+            <div className="text-[9px] text-slate-400">({studentAttendance.presentDays}/{studentAttendance.totalDays}일 출석)</div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-xs p-2 rounded-2xl border border-amber-100">
+            <div className="text-[10px] text-slate-500 font-bold">💳 8월 수납상태</div>
+            <div className={`text-xs font-black ${studentTuition.status === 'paid' ? 'text-emerald-600' : 'text-amber-600'}`}>
+              {studentTuition.statusText}
+            </div>
+            <div className="text-[9px] text-slate-400">{studentTuition.amount ? studentTuition.amount.toLocaleString() + '원' : ''}</div>
+          </div>
         </div>
       </div>
 
@@ -131,7 +176,6 @@ export default function GalleryTab({
       </div>
 
       {/* --- AGE GROUP PILLS (연령대 필터) --- */}
-      {/* Clicking any pill opens the Student Cards Modal for that Age Group! */}
       <div className="space-y-1.5 bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
           <span className="text-xs font-bold text-slate-500 shrink-0">연령대:</span>
@@ -336,10 +380,7 @@ export default function GalleryTab({
                   return (
                     <button
                       key={s.id}
-                      onClick={() => {
-                        onSelectStudent(s.id);
-                        setAgeModalGroup(null);
-                      }}
+                      onClick={() => handleSelectStudentFromModal(s.id)}
                       className={`p-3 rounded-2xl border text-left transition-all hover:shadow-xs space-y-1.5 ${
                         isSelected
                           ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-200 shadow-xs'
@@ -370,7 +411,7 @@ export default function GalleryTab({
 
                       <div className="pt-1 border-t border-slate-50 flex justify-between items-center text-[9px] text-rose-500 font-bold">
                         <span>작품 3개 보유</span>
-                        <span>전환 →</span>
+                        <span>기록 보기 →</span>
                       </div>
                     </button>
                   );
