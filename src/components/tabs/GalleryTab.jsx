@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Calendar, Heart, MessageCircle, Plus, ChevronRight, Clock, Award, Filter, ShieldCheck, UserCheck, X, CheckCircle, FileText, CreditCard } from 'lucide-react';
-import { STUDENTS, TUITION_DATA, ATTENDANCE_DATA } from '../../data/mockData';
+import { STUDENTS, TUITION_DATA, ATTENDANCE_DATA, ARTWORKS } from '../../data/mockData';
 
 export default function GalleryTab({ 
   artworks, 
@@ -42,13 +42,18 @@ export default function GalleryTab({
     }
   };
 
-  // 1. Filter Selected Student's Artworks
-  const studentArtworks = artworks.filter(a => a.studentId === student.id);
-  
+  // 1. Filter Selected Student's Artworks (with mockData fallback safety)
+  const currentList = (artworks && artworks.length > 0) ? artworks : ARTWORKS;
+  let studentArtworks = currentList.filter(a => a.studentId === student.id || a.studentId === student.id.replace('s0', 's'));
+
+  if (studentArtworks.length === 0) {
+    studentArtworks = ARTWORKS.filter(a => a.studentId === student.id || a.studentId === student.id.replace('s0', 's'));
+  }
+
   // Fallback safety: If no artwork matched by studentId, show matching age group artworks
   const displayedBaseArtworks = studentArtworks.length > 0 
     ? studentArtworks 
-    : artworks.filter(a => a.ageGroup === student.ageGroup);
+    : currentList.filter(a => a.ageGroup === student.ageGroup);
 
   // 2. Filter by Category
   const filteredArtworks = displayedBaseArtworks.filter(a => {

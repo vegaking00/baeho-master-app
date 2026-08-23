@@ -78,7 +78,15 @@ export const subscribeGallery = (onUpdate) => {
       onUpdate(ARTWORKS);
     } else {
       const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      onUpdate(list);
+      // Combine with local mockData ARTWORKS so all 50 students always have 3 artworks each
+      const existingIds = new Set(list.map(item => item.id));
+      const combined = [...list];
+      for (const art of ARTWORKS) {
+        if (!existingIds.has(art.id)) {
+          combined.push(art);
+        }
+      }
+      onUpdate(combined);
     }
   }, (err) => {
     console.warn("Firestore gallery 구독 실패, 기본 데이터 사용:", err);
@@ -93,7 +101,14 @@ export const subscribeNotices = (onUpdate) => {
       onUpdate(NOTICES);
     } else {
       const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      onUpdate(list);
+      const existingIds = new Set(list.map(item => item.id));
+      const combined = [...list];
+      for (const n of NOTICES) {
+        if (!existingIds.has(n.id)) {
+          combined.push(n);
+        }
+      }
+      onUpdate(combined);
     }
   }, (err) => {
     console.warn("Firestore notices 구독 실패, 기본 데이터 사용:", err);
@@ -102,16 +117,18 @@ export const subscribeNotices = (onUpdate) => {
 };
 
 export const subscribeAttendance = (onUpdate) => {
-  const attendanceRef = collection(db, "attendance");
-  return onSnapshot(attendanceRef, (snapshot) => {
+  const attRef = collection(db, "attendance");
+  return onSnapshot(attRef, (snapshot) => {
     if (snapshot.empty) {
       onUpdate(ATTENDANCE_DATA);
     } else {
-      const dataObj = {};
+      const data = {};
       snapshot.docs.forEach(d => {
-        dataObj[d.id] = d.data();
+        data[d.id] = d.data();
       });
-      onUpdate(dataObj);
+      // Merge with default 50 student attendance
+      const merged = { ...ATTENDANCE_DATA, ...data };
+      onUpdate(merged);
     }
   }, (err) => {
     console.warn("Firestore attendance 구독 실패, 기본 데이터 사용:", err);
@@ -120,13 +137,13 @@ export const subscribeAttendance = (onUpdate) => {
 };
 
 export const subscribeSchedules = (onUpdate) => {
-  const schedulesRef = collection(db, "schedules");
-  return onSnapshot(schedulesRef, (snapshot) => {
+  const schRef = collection(db, "schedules");
+  return onSnapshot(schRef, (snapshot) => {
     if (snapshot.empty) {
       onUpdate(SCHEDULE_DATA.events);
     } else {
       const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      onUpdate(list);
+      onUpdate(list.length > 0 ? list : SCHEDULE_DATA.events);
     }
   }, (err) => {
     console.warn("Firestore schedules 구독 실패, 기본 데이터 사용:", err);
@@ -134,15 +151,21 @@ export const subscribeSchedules = (onUpdate) => {
   });
 };
 
-// [tuition 컬렉션] 원비 수납 현황 구독
 export const subscribeTuition = (onUpdate) => {
-  const tuitionRef = collection(db, "tuition");
-  return onSnapshot(tuitionRef, (snapshot) => {
+  const tuiRef = collection(db, "tuition");
+  return onSnapshot(tuiRef, (snapshot) => {
     if (snapshot.empty) {
       onUpdate(TUITION_DATA);
     } else {
       const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      onUpdate(list);
+      const existingIds = new Set(list.map(item => item.id));
+      const combined = [...list];
+      for (const t of TUITION_DATA) {
+        if (!existingIds.has(t.id)) {
+          combined.push(t);
+        }
+      }
+      onUpdate(combined);
     }
   }, (err) => {
     console.warn("Firestore tuition 구독 실패, 기본 데이터 사용:", err);
@@ -151,7 +174,7 @@ export const subscribeTuition = (onUpdate) => {
 };
 
 // ----------------------------------------------------
-// 3. 관리자(원장님) Firestore C.R.U.D 명령 헬퍼
+// 3. Firestore CRUD 작업 헬퍼
 // ----------------------------------------------------
 
 export const addArtworkToFirestore = async (artworkData) => {
@@ -162,7 +185,7 @@ export const addArtworkToFirestore = async (artworkData) => {
     });
     return docRef.id;
   } catch (e) {
-    console.error("Firestore 작품 등록 오류:", e);
+    console.error("Firestore 작품 추가 오류:", e);
     return null;
   }
 };
@@ -179,12 +202,11 @@ export const addNoticeToFirestore = async (noticeData) => {
   try {
     const docRef = await addDoc(collection(db, "notices"), {
       ...noticeData,
-      views: 0,
       createdAt: serverTimestamp()
     });
     return docRef.id;
   } catch (e) {
-    console.error("Firestore 공지사항 작성 오류:", e);
+    console.error("Firestore 공지 추가 오류:", e);
     return null;
   }
 };
@@ -193,23 +215,31 @@ export const deleteNoticeFromFirestore = async (noticeId) => {
   try {
     await deleteDoc(doc(db, "notices", noticeId));
   } catch (e) {
-    console.error("Firestore 공지사항 삭제 오류:", e);
+    console.error("Firestore 공지 삭제 오류:", e);
   }
 };
 
-export const updateAttendanceInFirestore = async (studentId, dateStr, dayRecord, newSummary) => {
+export const updateAttendanceInFirestore = async (studentId, dateStr, dayRecord, summary) => {
   try {
-    const attDocRef = doc(db, "attendance", studentId);
-    const updateData = {};
-    if (dayRecord) {
-      updateData[`days.${dateStr}`] = dayRecord;
+    const attRef = doc(db, "attendance", studentId);
+    const updatePayload = {
+      [`days.${dateStr}`]: dayRecord
+    };
+    if (summary) {
+      updatePayload.summary = summary;
     }
-    if (newSummary) {
-      updateData[`summary`] = newSummary;
-    }
-    await updateDoc(attDocRef, updateData);
+    await updateDoc(attRef, updatePayload);
   } catch (e) {
-    console.error("Firestore 출석 업데이트 오류:", e);
+    console.warn("Firestore 출석 도큐먼트 미존재 시 생성 시도:", e);
+    try {
+      const attRef = doc(db, "attendance", studentId);
+      await setDoc(attRef, {
+        summary: summary || { totalDays: 10, presentDays: 9, lateDays: 1, absentDays: 0, makeupDays: 0, attendanceRate: 90 },
+        days: { [dateStr]: dayRecord }
+      }, { merge: true });
+    } catch (err) {
+      console.error("Firestore 출석 생성 실패:", err);
+    }
   }
 };
 
@@ -221,7 +251,7 @@ export const addScheduleToFirestore = async (scheduleData) => {
     });
     return docRef.id;
   } catch (e) {
-    console.error("Firestore 학원 일정 등록 오류:", e);
+    console.error("Firestore 일정 추가 오류:", e);
     return null;
   }
 };
@@ -230,11 +260,10 @@ export const deleteScheduleFromFirestore = async (scheduleId) => {
   try {
     await deleteDoc(doc(db, "schedules", scheduleId));
   } catch (e) {
-    console.error("Firestore 학원 일정 삭제 오류:", e);
+    console.error("Firestore 일정 삭제 오류:", e);
   }
 };
 
-// 원비 수납 상태 업데이트 (tuition 컬렉션)
 export const updateTuitionInFirestore = async (tuitionId, updateData) => {
   try {
     const tuiRef = doc(db, "tuition", tuitionId);
