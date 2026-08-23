@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Palette, ChevronDown, Sparkles, MapPin, Phone, Info, ShieldCheck, Lock, LogOut, UserCheck } from 'lucide-react';
+import { Palette, ChevronDown, Sparkles, MapPin, Phone, Info, ShieldCheck, Lock, LogOut, UserCheck, LayoutGrid, Users } from 'lucide-react';
 import { ACADEMY_INFO, STUDENTS } from '../data/mockData';
 
 export default function Header({ 
@@ -8,6 +8,7 @@ export default function Header({
   isAdmin, 
   onOpenLoginModal, 
   onOpenParentModal,
+  onOpenDashboardModal,
   onLogout 
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -15,14 +16,27 @@ export default function Header({
 
   const currentStudent = STUDENTS.find(s => s.id === selectedStudent) || STUDENTS[0];
 
+  // Group students for smooth dropdown navigation
+  const kinderStudents = STUDENTS.filter(s => s.age <= 7);
+  const lowerElemStudents = STUDENTS.filter(s => s.age >= 8 && s.age <= 10);
+  const upperElemStudents = STUDENTS.filter(s => s.age >= 11);
+
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-rose-100/60 px-4 py-2.5 shadow-xs">
       {/* Top Admin Status Bar (If Logged In as Director) */}
       {isAdmin ? (
         <div className="bg-gradient-to-r from-rose-500 via-purple-500 to-amber-500 text-white text-[10px] font-bold px-3 py-1 -mx-4 -mt-2.5 mb-2 flex items-center justify-between shadow-inner-soft">
-          <span className="flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5" /> 🎨 원장님 풀 관리자 접속 중 (전체 학생 관리)
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5" /> 🎨 원장님 관리자 접속 중 (50명 관리)
+            </span>
+            <button
+              onClick={onOpenDashboardModal}
+              className="bg-white text-rose-600 px-2 py-0.5 rounded-full text-[9px] font-extrabold hover:bg-rose-50 flex items-center gap-1 shadow-2xs"
+            >
+              <Users className="w-3 h-3" /> 🏫 50명 대시보드
+            </button>
+          </div>
           <button
             onClick={onLogout}
             className="bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded-full flex items-center gap-1 transition-colors"
@@ -31,16 +45,16 @@ export default function Header({
           </button>
         </div>
       ) : (
-        /* Top Parent Privacy Security Bar (If Logged In as Parent) */
+        /* Top Parent Privacy Security Bar */
         <div className="bg-slate-800 text-white text-[10px] font-bold px-3 py-1 -mx-4 -mt-2.5 mb-2 flex items-center justify-between">
           <span className="flex items-center gap-1 text-rose-300">
-            <UserCheck className="w-3.5 h-3.5" /> 🔒 학부모 모드: 내 자녀 [{currentStudent.name}] 정보 전용 암호화 보호 중
+            <UserCheck className="w-3.5 h-3.5" /> 🔒 학부모 모드: 내 자녀 [{currentStudent.name}] 정보 전용 보호 중
           </span>
           <button
             onClick={onOpenParentModal}
             className="bg-rose-500 hover:bg-rose-600 text-white text-[9px] px-2 py-0.5 rounded-full"
           >
-            자녀 변경
+            자녀 변경 (50명)
           </button>
         </div>
       )}
@@ -72,11 +86,10 @@ export default function Header({
           </div>
         </div>
 
-        {/* Right Section: Child Selector & Admin Login Toggle */}
+        {/* Right Section: Child Selector */}
         <div className="flex items-center gap-1.5">
-          {/* Child Selector Button */}
           {isAdmin ? (
-            /* Admin can freely switch using dropdown */
+            /* Admin can freely switch using scrollable 50-student dropdown */
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -85,44 +98,99 @@ export default function Header({
                 <span className="w-4 h-4 rounded-full bg-rose-400 text-white text-[10px] flex items-center justify-center">
                   {currentStudent.avatarEmoji}
                 </span>
-                <span>{currentStudent.name}</span>
+                <span>{currentStudent.name} ({currentStudent.id})</span>
                 <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-rose-100 z-50 p-2 animate-pop-in">
-                    <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                      원장님 학생 선택 (전체 관리)
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-rose-100 z-50 p-2 animate-pop-in max-h-[60vh] overflow-y-auto">
+                    <div className="flex items-center justify-between px-3 py-1.5 text-[10px] font-bold text-rose-600 bg-rose-50 rounded-xl mb-1 sticky top-0 border border-rose-100 z-10">
+                      <span>원장님 학생 선택 (총 50명)</span>
+                      <button onClick={onOpenDashboardModal} className="underline hover:text-rose-800">
+                        대시보드 보기 →
+                      </button>
                     </div>
-                    {STUDENTS.map((student) => (
+
+                    {/* Group 1: 유치부 (7세) */}
+                    <div className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md mt-1 mb-0.5">
+                      👧 유치부 (7세 - {kinderStudents.length}명)
+                    </div>
+                    {kinderStudents.map((student) => (
                       <button
                         key={student.id}
                         onClick={() => {
                           onSelectStudent(student.id);
                           setIsDropdownOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between p-2 rounded-xl transition-all text-left mt-1 ${
+                        className={`w-full flex items-center justify-between p-1.5 rounded-xl transition-all text-left text-xs ${
                           selectedStudent === student.id
-                            ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200/60'
+                            ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200'
                             : 'hover:bg-slate-50 text-slate-600'
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-rose-100 text-xs flex items-center justify-center">
-                            {student.avatarEmoji}
-                          </span>
-                          <div>
-                            <div className="text-xs">{student.name} 학생</div>
-                            <div className="text-[10px] text-slate-400 font-normal">{student.grade}</div>
-                          </div>
-                        </div>
-                        {selectedStudent === student.id && (
-                          <span className="text-xs text-rose-500 font-bold">✓</span>
-                        )}
+                        <span className="flex items-center gap-1.5">
+                          <span>{student.avatarEmoji}</span>
+                          <span>{student.name}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">({student.id})</span>
+                        </span>
+                        {selectedStudent === student.id && <span className="text-rose-500 font-bold">✓</span>}
                       </button>
                     ))}
+
+                    {/* Group 2: 초등 저학년 (1~3학년) */}
+                    <div className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md mt-2 mb-0.5">
+                      👦 초등 저학년 (1~3학년 - {lowerElemStudents.length}명)
+                    </div>
+                    {lowerElemStudents.map((student) => (
+                      <button
+                        key={student.id}
+                        onClick={() => {
+                          onSelectStudent(student.id);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between p-1.5 rounded-xl transition-all text-left text-xs ${
+                          selectedStudent === student.id
+                            ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200'
+                            : 'hover:bg-slate-50 text-slate-600'
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <span>{student.avatarEmoji}</span>
+                          <span>{student.name}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">({student.id})</span>
+                        </span>
+                        {selectedStudent === student.id && <span className="text-rose-500 font-bold">✓</span>}
+                      </button>
+                    ))}
+
+                    {/* Group 3: 초등 고학년 (4~6학년) */}
+                    <div className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md mt-2 mb-0.5">
+                      🧑 초등 고학년 (4~6학년 - {upperElemStudents.length}명)
+                    </div>
+                    {upperElemStudents.map((student) => (
+                      <button
+                        key={student.id}
+                        onClick={() => {
+                          onSelectStudent(student.id);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between p-1.5 rounded-xl transition-all text-left text-xs ${
+                          selectedStudent === student.id
+                            ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200'
+                            : 'hover:bg-slate-50 text-slate-600'
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <span>{student.avatarEmoji}</span>
+                          <span>{student.name}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">({student.id})</span>
+                        </span>
+                        {selectedStudent === student.id && <span className="text-rose-500 font-bold">✓</span>}
+                      </button>
+                    ))}
+
                   </div>
                 </>
               )}
@@ -138,7 +206,7 @@ export default function Header({
             </button>
           )}
 
-          {/* Admin Login Button (If Not Logged In as Admin) */}
+          {/* Admin Login Button */}
           {!isAdmin && (
             <button
               onClick={onOpenLoginModal}

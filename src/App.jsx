@@ -13,6 +13,7 @@ import AddNoticeModal from './components/modals/AddNoticeModal';
 import AddScheduleModal from './components/modals/AddScheduleModal';
 import AdminLoginModal from './components/modals/AdminLoginModal';
 import ParentLoginModal from './components/modals/ParentLoginModal';
+import AdminDashboardModal from './components/modals/AdminDashboardModal';
 import { STUDENTS, ARTWORKS, NOTICES, ATTENDANCE_DATA, SCHEDULE_DATA, TUITION_DATA } from './data/mockData';
 import { 
   subscribeGallery, 
@@ -36,7 +37,7 @@ import {
 } from './firebase';
 
 export default function App() {
-  const [selectedStudentId, setSelectedStudentId] = useState('s3'); // Default to Danwoo (12세)
+  const [selectedStudentId, setSelectedStudentId] = useState('s01'); // Default to Danwoo (12세)
   const [activeTab, setActiveTab] = useState('gallery');
   const [selectedArtwork, setSelectedArtwork] = useState(null);
   const [selectedNotice, setSelectedNotice] = useState(null);
@@ -47,6 +48,7 @@ export default function App() {
   const [showAddScheduleModal, setShowAddScheduleModal] = useState(false);
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
   const [showParentModal, setShowParentModal] = useState(false);
+  const [showDashboardModal, setShowDashboardModal] = useState(false);
 
   // Admin Auth state
   const [isAdmin, setIsAdmin] = useState(false);
@@ -216,6 +218,7 @@ export default function App() {
           isAdmin={isAdmin}
           onOpenLoginModal={() => setShowAdminLoginModal(true)}
           onOpenParentModal={() => setShowParentModal(true)}
+          onOpenDashboardModal={() => setShowDashboardModal(true)}
           onLogout={handleLogout}
         />
 
@@ -259,6 +262,7 @@ export default function App() {
               tuitionList={tuitionList}
               isAdmin={isAdmin}
               onUpdateTuition={handleUpdateTuition}
+              onSelectStudent={setSelectedStudentId}
             />
           )}
 
@@ -331,6 +335,15 @@ export default function App() {
             currentStudentId={selectedStudentId}
             onClose={() => setShowParentModal(false)}
             onSelectChild={setSelectedStudentId}
+          />
+        )}
+
+        {showDashboardModal && (
+          <AdminDashboardModal
+            currentStudentId={selectedStudentId}
+            onClose={() => setShowDashboardModal(false)}
+            onSelectStudent={setSelectedStudentId}
+            tuitionList={tuitionList}
           />
         )}
       </div>
