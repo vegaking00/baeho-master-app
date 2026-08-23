@@ -14,6 +14,7 @@ import AddScheduleModal from './components/modals/AddScheduleModal';
 import AdminLoginModal from './components/modals/AdminLoginModal';
 import ParentLoginModal from './components/modals/ParentLoginModal';
 import AdminDashboardModal from './components/modals/AdminDashboardModal';
+import StudentDetailInspectorModal from './components/modals/StudentDetailInspectorModal';
 import { STUDENTS, ARTWORKS, NOTICES, ATTENDANCE_DATA, SCHEDULE_DATA, TUITION_DATA } from './data/mockData';
 import { 
   subscribeGallery, 
@@ -49,6 +50,7 @@ export default function App() {
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
   const [showParentModal, setShowParentModal] = useState(false);
   const [showDashboardModal, setShowDashboardModal] = useState(false);
+  const [inspectorStudentId, setInspectorStudentId] = useState(null); // When director inspects a child
 
   // Admin Auth state
   const [isAdmin, setIsAdmin] = useState(false);
@@ -98,6 +100,13 @@ export default function App() {
   }, []);
 
   // --- ACTIONS ---
+
+  const handleSelectStudentWithInspector = (studentId) => {
+    setSelectedStudentId(studentId);
+    if (isAdmin) {
+      setInspectorStudentId(studentId); // Open comprehensive student inspector modal for Director!
+    }
+  };
 
   const handleLoginSuccess = (user) => {
     setIsAdmin(true);
@@ -214,7 +223,7 @@ export default function App() {
         {/* Header Bar */}
         <Header
           selectedStudent={selectedStudentId}
-          onSelectStudent={setSelectedStudentId}
+          onSelectStudent={handleSelectStudentWithInspector}
           isAdmin={isAdmin}
           onOpenLoginModal={() => setShowAdminLoginModal(true)}
           onOpenParentModal={() => setShowParentModal(true)}
@@ -232,6 +241,7 @@ export default function App() {
               onOpenAddModal={() => setShowAddArtworkModal(true)}
               isAdmin={isAdmin}
               onDeleteArtwork={handleDeleteArtwork}
+              onSelectStudent={handleSelectStudentWithInspector}
             />
           )}
 
@@ -262,7 +272,7 @@ export default function App() {
               tuitionList={tuitionList}
               isAdmin={isAdmin}
               onUpdateTuition={handleUpdateTuition}
-              onSelectStudent={setSelectedStudentId}
+              onSelectStudent={handleSelectStudentWithInspector}
             />
           )}
 
@@ -342,8 +352,20 @@ export default function App() {
           <AdminDashboardModal
             currentStudentId={selectedStudentId}
             onClose={() => setShowDashboardModal(false)}
-            onSelectStudent={setSelectedStudentId}
+            onSelectStudent={handleSelectStudentWithInspector}
             tuitionList={tuitionList}
+          />
+        )}
+
+        {inspectorStudentId && (
+          <StudentDetailInspectorModal
+            studentId={inspectorStudentId}
+            artworksList={artworksList}
+            onClose={() => setInspectorStudentId(null)}
+            onSelectArtwork={(art) => {
+              setSelectedArtwork(art);
+            }}
+            onUpdateTuition={handleUpdateTuition}
           />
         )}
       </div>
