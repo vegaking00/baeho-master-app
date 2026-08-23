@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Users, CreditCard, Send, Plus, Sparkles, CheckCircle, Clock, ChevronRight, Search, FileText, Bell } from 'lucide-react';
+import { ShieldCheck, Users, CreditCard, Send, Plus, Sparkles, CheckCircle, Clock, ChevronRight, Search, FileText, Bell, ChevronDown } from 'lucide-react';
 import { STUDENTS, TUITION_DATA, ATTENDANCE_DATA } from '../../data/mockData';
 
 export default function AdminMainDashboardView({ 
@@ -12,6 +12,7 @@ export default function AdminMainDashboardView({
   tuitionList 
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGradeTab, setSelectedGradeTab] = useState('전체'); // '전체' | '유치부' | '초등저학년' | '초등고학년'
 
   const currentTuitionList = tuitionList || TUITION_DATA;
   const totalStudents = STUDENTS.length; // 50
@@ -19,15 +20,32 @@ export default function AdminMainDashboardView({
   const pendingCount = totalStudents - paidCount;
   const paidRate = Math.round((paidCount / totalStudents) * 100);
 
-  const kinderCount = STUDENTS.filter(s => s.age <= 7).length;
-  const lowerElemCount = STUDENTS.filter(s => s.age >= 8 && s.age <= 10).length;
-  const upperElemCount = STUDENTS.filter(s => s.age >= 11).length;
+  // Group Students by Grade
+  const kinderStudents = STUDENTS.filter(s => s.age <= 7);
+  const lowerElemStudents = STUDENTS.filter(s => s.age >= 8 && s.age <= 10);
+  const upperElemStudents = STUDENTS.filter(s => s.age >= 11);
 
-  const filteredStudents = STUDENTS.filter(s => 
-    s.name.includes(searchTerm) || 
-    s.grade.includes(searchTerm) || 
-    s.id.includes(searchTerm.toLowerCase())
-  );
+  const kinderCount = kinderStudents.length;
+  const lowerElemCount = lowerElemStudents.length;
+  const upperElemCount = upperElemStudents.length;
+
+  // Filter logic (by Student Name, Parent Account/Name, Grade, ID)
+  const filterList = (list) => {
+    if (!searchTerm.trim()) return list;
+    const term = searchTerm.trim().toLowerCase();
+    return list.filter(s => 
+      s.name.toLowerCase().includes(term) || 
+      s.grade.toLowerCase().includes(term) || 
+      s.id.toLowerCase().includes(term) ||
+      (s.parentAccount?.username && s.parentAccount.username.toLowerCase().includes(term)) ||
+      (s.parentAccount?.email && s.parentAccount.email.toLowerCase().includes(term)) ||
+      (term.includes('학부모') && s.name.includes(term.replace('학부모', '').trim()))
+    );
+  };
+
+  const filteredKinder = filterList(kinderStudents);
+  const filteredLower = filterList(lowerElemStudents);
+  const filteredUpper = filterList(upperElemStudents);
 
   const handleSendReminder = () => {
     alert(`[알림 발송 완료] 8월 미납 학부모님(${pendingCount}명)께 수납 안내 문자가 일괄 발송되었습니다! 📱`);
@@ -150,67 +168,229 @@ export default function AdminMainDashboardView({
         </div>
       </div>
 
-      {/* 50 Students Management Grid */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+      {/* ------------------------------------------------------------------ */}
+      {/* 50명 재원생 학년별 구분 조회 & 검색 섹션 (요청사항 전면 반영) */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3.5">
         <div className="flex justify-between items-center">
           <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-purple-600" /> 50명 재원생 기록 통합 조회
+            <Users className="w-4 h-4 text-purple-600" /> 50명 재원생 학년별 구분 조회
           </h3>
           <span className="text-[10px] text-purple-600 font-bold bg-purple-50 px-2 py-0.5 rounded-full">
-            클릭 시 종합 기록부 팝업
+            터치 시 종합 기록부 팝업
           </span>
         </div>
 
+        {/* Search Input Bar (Supports Student Name, Parent Account, Grade, ID) */}
         <div className="relative">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
-            placeholder="학생 이름, 학년 또는 ID 검색..."
+            placeholder="학생 이름, 학부모 계정/이름, 학년 또는 ID 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-purple-400"
           />
         </div>
 
-        <div className="overflow-y-auto max-h-[300px] space-y-2 pr-1">
-          <div className="grid grid-cols-2 gap-2">
-            {filteredStudents.map((s) => {
-              const tInfo = currentTuitionList.find(t => t.studentId === s.id);
-              const isPaid = tInfo?.status === 'paid';
+        {/* Grade Category Pills Switcher */}
+        <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl text-[11px] font-bold text-center">
+          <button
+            onClick={() => setSelectedGradeTab('전체')}
+            className={`py-1.5 rounded-xl transition-all ${
+              selectedGradeTab === '전체' ? 'bg-purple-600 text-white shadow-2xs' : 'text-slate-600'
+            }`}
+          >
+            전체 ({totalStudents})
+          </button>
+          <button
+            onClick={() => setSelectedGradeTab('유치부')}
+            className={`py-1.5 rounded-xl transition-all ${
+              selectedGradeTab === '유치부' ? 'bg-amber-500 text-white shadow-2xs' : 'text-slate-600'
+            }`}
+          >
+            유치부 ({kinderCount})
+          </button>
+          <button
+            onClick={() => setSelectedGradeTab('초등저학년')}
+            className={`py-1.5 rounded-xl transition-all ${
+              selectedGradeTab === '초등저학년' ? 'bg-sky-500 text-white shadow-2xs' : 'text-slate-600'
+            }`}
+          >
+            초등저 ({lowerElemCount})
+          </button>
+          <button
+            onClick={() => setSelectedGradeTab('초등고학년')}
+            className={`py-1.5 rounded-xl transition-all ${
+              selectedGradeTab === '초등고학년' ? 'bg-purple-500 text-white shadow-2xs' : 'text-slate-600'
+            }`}
+          >
+            초등고 ({upperElemCount})
+          </button>
+        </div>
 
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => onSelectStudent(s.id)}
-                  className="p-3 rounded-2xl border border-slate-100 hover:border-purple-300 bg-slate-50/50 text-left transition-all hover:shadow-xs space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xl">{s.avatarEmoji}</span>
-                    <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full ${
-                      isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {isPaid ? '수납 완료' : '납부 예정'}
-                    </span>
-                  </div>
+        {/* Grouped Student List Sections */}
+        <div className="overflow-y-auto max-h-[420px] space-y-4 pr-1">
+          
+          {/* GROUP 1: 유치부 (7세 - 10명) */}
+          {(selectedGradeTab === '전체' || selectedGradeTab === '유치부') && filteredKinder.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between bg-amber-50 border border-amber-200/80 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-900 sticky top-0 z-10 shadow-2xs">
+                <span>👧 7세 유치부 (창의 표현 & 클레이반)</span>
+                <span className="bg-amber-200/70 px-2 py-0.5 rounded-full text-[10px] font-extrabold text-amber-900">
+                  {filteredKinder.length}명
+                </span>
+              </div>
 
-                  <div>
-                    <div className="font-extrabold text-slate-800 text-xs flex items-center gap-1">
-                      <span>{s.name}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">({s.id})</span>
-                    </div>
-                    <div className="text-[10px] text-slate-500 font-normal">
-                      {s.grade}
-                    </div>
-                  </div>
+              <div className="grid grid-cols-2 gap-2">
+                {filteredKinder.map((s) => {
+                  const tInfo = currentTuitionList.find(t => t.studentId === s.id);
+                  const isPaid = tInfo?.status === 'paid';
 
-                  <div className="pt-1 border-t border-slate-100 flex justify-between items-center text-[9px] text-purple-600 font-bold">
-                    <span>작품 3개</span>
-                    <span>조회 →</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => onSelectStudent(s.id)}
+                      className="p-2.5 rounded-2xl border border-slate-100 hover:border-amber-400 bg-white text-left transition-all hover:shadow-xs space-y-1 group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg">{s.avatarEmoji}</span>
+                        <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
+                          isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {isPaid ? '수납 완료' : '납부 예정'}
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="font-extrabold text-slate-800 text-xs flex items-center gap-1 group-hover:text-amber-700">
+                          <span>{s.name}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">({s.id})</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-normal">
+                          {s.grade}
+                        </div>
+                      </div>
+
+                      <div className="pt-1 border-t border-slate-50 flex justify-between items-center text-[9px] text-amber-600 font-bold">
+                        <span>작품 3개</span>
+                        <span>조회 →</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* GROUP 2: 초등 저학년 (1~3학년 - 22명) */}
+          {(selectedGradeTab === '전체' || selectedGradeTab === '초등저학년') && filteredLower.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between bg-sky-50 border border-sky-200/80 px-3 py-1.5 rounded-xl text-xs font-bold text-sky-900 sticky top-0 z-10 shadow-2xs">
+                <span>👦 초등 저학년 (1~3학년 / 융합 조형 & 수채화반)</span>
+                <span className="bg-sky-200/70 px-2 py-0.5 rounded-full text-[10px] font-extrabold text-sky-900">
+                  {filteredLower.length}명
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {filteredLower.map((s) => {
+                  const tInfo = currentTuitionList.find(t => t.studentId === s.id);
+                  const isPaid = tInfo?.status === 'paid';
+
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => onSelectStudent(s.id)}
+                      className="p-2.5 rounded-2xl border border-slate-100 hover:border-sky-400 bg-white text-left transition-all hover:shadow-xs space-y-1 group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg">{s.avatarEmoji}</span>
+                        <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
+                          isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {isPaid ? '수납 완료' : '납부 예정'}
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="font-extrabold text-slate-800 text-xs flex items-center gap-1 group-hover:text-sky-700">
+                          <span>{s.name}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">({s.id})</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-normal">
+                          {s.grade}
+                        </div>
+                      </div>
+
+                      <div className="pt-1 border-t border-slate-50 flex justify-between items-center text-[9px] text-sky-600 font-bold">
+                        <span>작품 3개</span>
+                        <span>조회 →</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* GROUP 3: 초등 고학년 (4~6학년 - 18명) */}
+          {(selectedGradeTab === '전체' || selectedGradeTab === '초등고학년') && filteredUpper.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between bg-purple-50 border border-purple-200/80 px-3 py-1.5 rounded-xl text-xs font-bold text-purple-900 sticky top-0 z-10 shadow-2xs">
+                <span>🧑 초등 고학년 (4~6학년 / 웹툰 일러스트 & 입체 조소반)</span>
+                <span className="bg-purple-200/70 px-2 py-0.5 rounded-full text-[10px] font-extrabold text-purple-900">
+                  {filteredUpper.length}명
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {filteredUpper.map((s) => {
+                  const tInfo = currentTuitionList.find(t => t.studentId === s.id);
+                  const isPaid = tInfo?.status === 'paid';
+
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => onSelectStudent(s.id)}
+                      className="p-2.5 rounded-2xl border border-slate-100 hover:border-purple-400 bg-white text-left transition-all hover:shadow-xs space-y-1 group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg">{s.avatarEmoji}</span>
+                        <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
+                          isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {isPaid ? '수납 완료' : '납부 예정'}
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="font-extrabold text-slate-800 text-xs flex items-center gap-1 group-hover:text-purple-700">
+                          <span>{s.name}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">({s.id})</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-normal">
+                          {s.grade}
+                        </div>
+                      </div>
+
+                      <div className="pt-1 border-t border-slate-50 flex justify-between items-center text-[9px] text-purple-600 font-bold">
+                        <span>작품 3개</span>
+                        <span>조회 →</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {filteredKinder.length === 0 && filteredLower.length === 0 && filteredUpper.length === 0 && (
+            <div className="text-center py-10 text-slate-400 text-xs">
+              검색된 조건의 재원생이 없습니다.
+            </div>
+          )}
+
         </div>
       </div>
 
