@@ -6,6 +6,7 @@ export default function Header({
   selectedStudent, 
   onSelectStudent, 
   isAdmin, 
+  userRole,
   onOpenLoginModal, 
   onOpenParentModal,
   onOpenDashboardModal,
@@ -23,16 +24,16 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-rose-100/60 px-4 py-2.5 shadow-xs">
-      {/* Top Admin Status Bar (If Logged In as Director) */}
-      {isAdmin ? (
-        <div className="bg-gradient-to-r from-rose-500 via-purple-500 to-amber-500 text-white text-[10px] font-bold px-3 py-1 -mx-4 -mt-2.5 mb-2 flex items-center justify-between shadow-inner-soft">
+      {/* Top Status Bar based on User Role */}
+      {userRole === 'admin' ? (
+        <div className="bg-gradient-to-r from-purple-600 via-rose-500 to-amber-500 text-white text-[10px] font-bold px-3 py-1 -mx-4 -mt-2.5 mb-2 flex items-center justify-between shadow-inner-soft">
           <div className="flex items-center gap-1.5">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" /> 🎨 원장님 관리자 접속 중 (50명 관리)
             </span>
             <button
               onClick={onOpenDashboardModal}
-              className="bg-white text-rose-600 px-2 py-0.5 rounded-full text-[9px] font-extrabold hover:bg-rose-50 flex items-center gap-1 shadow-2xs"
+              className="bg-white text-purple-700 px-2 py-0.5 rounded-full text-[9px] font-extrabold hover:bg-rose-50 flex items-center gap-1 shadow-2xs"
             >
               <Users className="w-3 h-3" /> 🏫 50명 대시보드
             </button>
@@ -41,23 +42,31 @@ export default function Header({
             onClick={onLogout}
             className="bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded-full flex items-center gap-1 transition-colors"
           >
-            <LogOut className="w-3 h-3" /> 로그아웃
+            <LogOut className="w-3 h-3" /> 메인 게이트로 로그아웃
           </button>
         </div>
-      ) : (
-        /* Top Parent Privacy Security Bar */
+      ) : userRole === 'parent' ? (
+        /* Parent Privacy Security Bar */
         <div className="bg-slate-800 text-white text-[10px] font-bold px-3 py-1 -mx-4 -mt-2.5 mb-2 flex items-center justify-between">
           <span className="flex items-center gap-1 text-rose-300">
             <UserCheck className="w-3.5 h-3.5" /> 🔒 학부모 모드: 내 자녀 [{currentStudent.name}] 정보 전용 보호 중
           </span>
-          <button
-            onClick={onOpenParentModal}
-            className="bg-rose-500 hover:bg-rose-600 text-white text-[9px] px-2 py-0.5 rounded-full"
-          >
-            자녀 변경 (50명)
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onOpenParentModal}
+              className="bg-rose-500 hover:bg-rose-600 text-white text-[9px] px-2 py-0.5 rounded-full"
+            >
+              자녀 변경 (50명)
+            </button>
+            <button
+              onClick={onLogout}
+              className="bg-slate-700 hover:bg-slate-600 text-slate-200 text-[9px] px-2 py-0.5 rounded-full"
+            >
+              로그아웃
+            </button>
+          </div>
         </div>
-      )}
+      ) : null}
 
       <div className="flex items-center justify-between">
         {/* Academy Brand Logo & Name */}
@@ -88,7 +97,7 @@ export default function Header({
 
         {/* Right Section: Child Selector */}
         <div className="flex items-center gap-1.5">
-          {isAdmin ? (
+          {userRole === 'admin' ? (
             /* Admin can freely switch using scrollable 50-student dropdown */
             <div className="relative">
               <button
@@ -195,7 +204,7 @@ export default function Header({
                 </>
               )}
             </div>
-          ) : (
+          ) : userRole === 'parent' ? (
             /* Parent Mode Child Display Button */
             <button
               onClick={onOpenParentModal}
@@ -204,16 +213,16 @@ export default function Header({
               <span>{currentStudent.avatarEmoji}</span>
               <span>{currentStudent.name} (내 아이)</span>
             </button>
-          )}
+          ) : null}
 
-          {/* Admin Login Button */}
-          {!isAdmin && (
+          {/* Logout or Gateway Button */}
+          {userRole !== 'guest' && (
             <button
-              onClick={onOpenLoginModal}
+              onClick={onLogout}
               className="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 p-1.5 rounded-full transition-colors border border-slate-200/60"
-              title="원장님(관리자) 로그인"
+              title="로그아웃 (메인 게이트로 이동)"
             >
-              <Lock className="w-3.5 h-3.5" />
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

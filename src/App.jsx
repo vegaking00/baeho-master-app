@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
+import LoginLandingPage from './components/LoginLandingPage';
+import AdminMainDashboardView from './components/views/AdminMainDashboardView';
+import ParentMainCareView from './components/views/ParentMainCareView';
 import GalleryTab from './components/tabs/GalleryTab';
 import NoticeTab from './components/tabs/NoticeTab';
 import AttendanceTab from './components/tabs/AttendanceTab';
@@ -38,8 +41,11 @@ import {
 } from './firebase';
 
 export default function App() {
+  // Session & User Role State: 'guest' (First Landing) | 'admin' (Director Main) | 'parent' (Parent Main)
+  const [userRole, setUserRole] = useState('guest'); 
   const [selectedStudentId, setSelectedStudentId] = useState('s01'); // Default to Danwoo (12세)
-  const [activeTab, setActiveTab] = useState('gallery');
+  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'gallery' | 'notice' | 'attendance' | 'tuition' | 'schedule'
+  
   const [selectedArtwork, setSelectedArtwork] = useState(null);
   const [selectedNotice, setSelectedNotice] = useState(null);
   
@@ -51,10 +57,6 @@ export default function App() {
   const [showParentModal, setShowParentModal] = useState(false);
   const [showDashboardModal, setShowDashboardModal] = useState(false);
   const [inspectorStudentId, setInspectorStudentId] = useState(null); // When director inspects a child
-
-  // Admin Auth state
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminUser, setAdminUser] = useState(null);
 
   // Firestore Realtime Collections state
   const [artworksList, setArtworksList] = useState(ARTWORKS);
@@ -70,11 +72,7 @@ export default function App() {
   useEffect(() => {
     const unsubAuth = subscribeAuthStatus((user) => {
       if (user) {
-        setIsAdmin(true);
-        setAdminUser(user);
-      } else {
-        setIsAdmin(false);
-        setAdminUser(null);
+        setUserRole('admin');
       }
     });
     return () => unsubAuth();
@@ -101,22 +99,28 @@ export default function App() {
 
   // --- ACTIONS ---
 
-  const handleSelectStudentWithInspector = (studentId) => {
-    setSelectedStudentId(studentId);
-    if (isAdmin) {
-      setInspectorStudentId(studentId); // Open comprehensive student inspector modal for Director!
-    }
+  const handleAdminLoginSuccess = () => {
+    setUserRole('admin');
+    setActiveTab('home');
   };
 
-  const handleLoginSuccess = (user) => {
-    setIsAdmin(true);
-    setAdminUser(user);
+  const handleParentLoginSuccess = (studentId) => {
+    setSelectedStudentId(studentId);
+    setUserRole('parent');
+    setActiveTab('home');
   };
 
   const handleLogout = async () => {
     await adminLogout();
-    setIsAdmin(false);
-    setAdminUser(null);
+    setUserRole('guest');
+    setActiveTab('home');
+  };
+
+  const handleSelectStudentWithInspector = (studentId) => {
+    setSelectedStudentId(studentId);
+    if (userRole === 'admin') {
+      setInspectorStudentId(studentId); // Open comprehensive student inspector modal for Director!
+    }
   };
 
   const handleAddArtwork = async (newArtwork) => {
@@ -191,7 +195,7 @@ export default function App() {
   const handleAddComment = async (artworkId, commentText) => {
     const newComment = {
       id: Date.now(),
-      name: "학부모",
+      name: userRole === 'admin' ? "신연정 원장님" : `${currentStudent.name} 학부모`,
       date: new Date().toISOString().slice(0, 16).replace('T', ' '),
       text: commentText
     };
@@ -215,6 +219,18 @@ export default function App() {
     setNoticesList(prev => prev.map(n => n.id === noticeId ? { ...n, isRead: true } : n));
   };
 
+  // --- RENDER SCREEN BASED ON USER ROLE ---
+
+  // 1. GUEST MODE: INITIAL INTEGRATED LANDING PAGE
+  if (userRole === 'guest') {
+    return (
+      <LoginLandingPage
+        onAdminLogin={handleAdminLoginSuccess}
+        onParentLogin={handleParentLoginSuccess}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-200/80 flex items-center justify-center p-0 sm:p-4">
       {/* Mobile Device Frame Container */}
@@ -224,7 +240,8 @@ export default function App() {
         <Header
           selectedStudent={selectedStudentId}
           onSelectStudent={handleSelectStudentWithInspector}
-          isAdmin={isAdmin}
+          isAdmin={userRole === 'admin'}
+          userRole={userRole}
           onOpenLoginModal={() => setShowAdminLoginModal(true)}
           onOpenParentModal={() => setShowParentModal(true)}
           onOpenDashboardModal={() => setShowDashboardModal(true)}
@@ -233,13 +250,38 @@ export default function App() {
 
         {/* Scrollable Main Content Area */}
         <main className="flex-1 overflow-y-auto px-4 py-3">
+          
+          {/* TAB: HOME MAIN SCREEN (DIRECTOR vs PARENT SPECIFIC MAIN) */}
+          {activeTab === 'home' && (
+            userRole === 'admin' ? (
+              /* Director Admin Command Center Main View */
+              <AdminMainDashboardView
+                onSelectStudent={handleSelectStudentWithInspector}
+                onOpenAddArtwork={() => setShowAddArtworkModal(true)}
+                onOpenAddNotice={() => setShowAddNoticeModal(true)}
+                onOpenAddSchedule={() => setShowAddScheduleModal(true)}
+                onOpenDashboardModal={() => setShowDashboardModal(true)}
+                onNavigateTab={setActiveTab}
+                tuitionList={tuitionList}
+              />
+            ) : (
+              /* Parent Child Care Main View */
+              <ParentMainCareView
+                student={currentStudent}
+                artworksList={artworksList}
+                onSelectArtwork={setSelectedArtwork}
+                onNavigateTab={setActiveTab}
+              />
+            )
+          )}
+
           {activeTab === 'gallery' && (
             <GalleryTab
               artworks={artworksList}
               student={currentStudent}
               onSelectArtwork={setSelectedArtwork}
               onOpenAddModal={() => setShowAddArtworkModal(true)}
-              isAdmin={isAdmin}
+              isAdmin={userRole === 'admin'}
               onDeleteArtwork={handleDeleteArtwork}
               onSelectStudent={handleSelectStudentWithInspector}
             />
@@ -252,7 +294,7 @@ export default function App() {
                 setSelectedNotice(notice);
                 handleMarkNoticeRead(notice.id);
               }}
-              isAdmin={isAdmin}
+              isAdmin={userRole === 'admin'}
               onOpenAddNoticeModal={() => setShowAddNoticeModal(true)}
               onDeleteNotice={handleDeleteNotice}
             />
@@ -261,7 +303,7 @@ export default function App() {
           {activeTab === 'attendance' && (
             <AttendanceTab
               student={currentStudent}
-              isAdmin={isAdmin}
+              isAdmin={userRole === 'admin'}
               onUpdateAttendance={handleUpdateAttendance}
             />
           )}
@@ -270,7 +312,7 @@ export default function App() {
             <TuitionTab
               student={currentStudent}
               tuitionList={tuitionList}
-              isAdmin={isAdmin}
+              isAdmin={userRole === 'admin'}
               onUpdateTuition={handleUpdateTuition}
               onSelectStudent={handleSelectStudentWithInspector}
             />
@@ -279,7 +321,7 @@ export default function App() {
           {activeTab === 'schedule' && (
             <ScheduleTab
               events={schedulesList}
-              isAdmin={isAdmin}
+              isAdmin={userRole === 'admin'}
               onOpenAddScheduleModal={() => setShowAddScheduleModal(true)}
               onDeleteSchedule={handleDeleteSchedule}
             />
@@ -336,7 +378,7 @@ export default function App() {
         {showAdminLoginModal && (
           <AdminLoginModal
             onClose={() => setShowAdminLoginModal(false)}
-            onLoginSuccess={handleLoginSuccess}
+            onLoginSuccess={handleAdminLoginSuccess}
           />
         )}
 
@@ -344,7 +386,7 @@ export default function App() {
           <ParentLoginModal
             currentStudentId={selectedStudentId}
             onClose={() => setShowParentModal(false)}
-            onSelectChild={setSelectedStudentId}
+            onSelectChild={handleParentLoginSuccess}
           />
         )}
 
