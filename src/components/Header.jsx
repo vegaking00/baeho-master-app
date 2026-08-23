@@ -50,7 +50,7 @@ export default function Header({
             <LogOut className="w-3.5 h-3.5" /> 로그아웃
           </button>
         </div>
-      ) : userRole === 'parent' ? (
+      ) : (
         /* Parent Privacy Security Bar & Prominent Logout */
         <div className="bg-slate-800 text-white text-[10px] font-bold px-2.5 py-1.5 -mx-3 -mt-2 mb-2 flex items-center justify-between">
           <span className="flex items-center gap-1 text-rose-300 truncate mr-1">
@@ -66,13 +66,13 @@ export default function Header({
             </button>
             <button
               onClick={onLogout}
-              className="bg-slate-900 hover:bg-black text-rose-300 font-extrabold text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 border border-rose-300/40 active:scale-95"
+              className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs active:scale-95"
             >
               <LogOut className="w-3 h-3" /> 로그아웃
             </button>
           </div>
         </div>
-      ) : null}
+      )}
 
       <div className="flex items-center justify-between">
         {/* Academy Brand Logo & Name */}
@@ -101,14 +101,14 @@ export default function Header({
           </div>
         </div>
 
-        {/* Right Section: Student Selector & Extra Logout */}
-        <div className="flex items-center gap-1">
+        {/* Right Section: Student Selector & Prominent Logout Icon */}
+        <div className="flex items-center gap-1.5">
           {userRole === 'admin' || isAdmin ? (
             /* Admin Dropdown */
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-1 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 rounded-full px-2 py-1 text-xs font-semibold text-slate-700 active:scale-95 shadow-2xs"
+                className="flex items-center gap-1 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 rounded-full px-2.5 py-1 text-xs font-semibold text-slate-700 active:scale-95 shadow-2xs"
               >
                 <span className="w-4 h-4 rounded-full bg-rose-400 text-white text-[10px] flex items-center justify-center">
                   {currentStudent.avatarEmoji}
@@ -210,24 +210,25 @@ export default function Header({
                 </>
               )}
             </div>
-          ) : userRole === 'parent' ? (
+          ) : (
             /* Parent Child Button */
             <button
               onClick={onOpenParentModal}
-              className="flex items-center gap-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-full px-2 py-1 text-xs font-bold text-rose-800 shadow-2xs"
+              className="flex items-center gap-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-full px-2.5 py-1 text-xs font-bold text-rose-800 shadow-2xs"
             >
               <span>{currentStudent.avatarEmoji}</span>
               <span className="text-[11px]">{currentStudent.name}</span>
             </button>
-          ) : null}
+          )}
 
-          {/* Quick Header Logout Icon */}
+          {/* Prominent Red Logout Icon Button (Replaces old gray lock) */}
           <button
             onClick={onLogout}
-            className="bg-slate-800 hover:bg-black text-white p-1.5 rounded-full transition-colors border border-slate-700 shrink-0"
+            className="bg-rose-500 hover:bg-rose-600 text-white px-2 py-1 rounded-xl transition-all border border-rose-300 font-bold text-[10px] flex items-center gap-1 shadow-2xs shrink-0 active:scale-95"
             title="메인 게이트로 로그아웃"
           >
-            <LogOut className="w-3.5 h-3.5 text-amber-300" />
+            <LogOut className="w-3.5 h-3.5" />
+            <span>로그아웃</span>
           </button>
         </div>
       </div>
