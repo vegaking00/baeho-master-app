@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Palette, ChevronDown, Sparkles, MapPin, Phone, Info, ShieldCheck, Lock, LogOut, UserCheck, LayoutGrid, Users } from 'lucide-react';
-import { ACADEMY_INFO, STUDENTS } from '../data/mockData';
+import { ACADEMY_INFO, STUDENTS, getSiblings } from '../data/mockData';
 
 export default function Header({ 
   selectedStudent, 
@@ -13,13 +13,18 @@ export default function Header({
   onLogout 
 }) {
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [isParentDropdownOpen, setIsParentDropdownOpen] = useState(false);
+
   const currentStudent = STUDENTS.find(s => s.id === selectedStudent) || STUDENTS[0];
+  
+  // Get all siblings registered under this parent's family
+  const siblings = getSiblings ? getSiblings(currentStudent.id) : [currentStudent];
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-rose-100 px-3 py-2 shadow-xs">
       
       {/* ------------------------------------------------------------------ */}
-      {/* TOP STATUS BAR: ADMIN MODE vs PARENT MODE SECURITY STATUS */}
+      {/* TOP STATUS BAR: ADMIN MODE vs PARENT MODE MULTI-CHILD STATUS */}
       {/* ------------------------------------------------------------------ */}
       {userRole === 'admin' || isAdmin ? (
         /* Director Admin Mode Banner */
@@ -40,18 +45,19 @@ export default function Header({
           </div>
         </div>
       ) : (
-        /* Parent Privacy Security Bar */
+        /* Parent Privacy & Multi-Child Family Status Bar */
         <div className="bg-slate-800 text-white text-[10px] font-bold px-2.5 py-1.5 -mx-3 -mt-2 mb-2 flex items-center justify-between">
           <span className="flex items-center gap-1 text-rose-300 truncate mr-1">
-            <UserCheck className="w-3.5 h-3.5 shrink-0" /> 내 자녀 [{currentStudent.name}] 개인 정보 보호 모드
+            <UserCheck className="w-3.5 h-3.5 shrink-0" /> 학부모 통합 모드: [{currentStudent.name}] 개인 정보 보호 중
           </span>
           
           <div className="flex items-center gap-1 shrink-0">
             <button
-              onClick={onOpenParentModal}
-              className="bg-rose-500 hover:bg-rose-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold"
+              onClick={() => setIsParentDropdownOpen(!isParentDropdownOpen)}
+              className="bg-rose-500 hover:bg-rose-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1"
             >
-              자녀 변경
+              <span>자녀 선택 ({siblings.length}명)</span>
+              <ChevronDown className="w-3 h-3" />
             </button>
           </div>
         </div>
@@ -104,15 +110,78 @@ export default function Header({
               </button>
             </div>
           ) : (
-            /* PARENT MODE: Show Child Badge + Logout */
-            <div className="flex items-center gap-1.5">
+            /* PARENT MODE: Multi-Child Sibling Selector & Logout */
+            <div className="flex items-center gap-1.5 relative">
               <button
-                onClick={onOpenParentModal}
+                onClick={() => setIsParentDropdownOpen(!isParentDropdownOpen)}
                 className="flex items-center gap-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-full px-2.5 py-1 text-xs font-bold text-rose-800 shadow-2xs"
               >
                 <span>{currentStudent.avatarEmoji}</span>
-                <span className="text-[11px]">{currentStudent.name} (내 아이)</span>
+                <span className="text-[11px]">{currentStudent.name}</span>
+                {siblings.length > 1 && (
+                  <span className="bg-rose-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-extrabold">
+                    {siblings.length}형제
+                  </span>
+                )}
+                <ChevronDown className={`w-3 h-3 text-rose-500 transition-transform ${isParentDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
+
+              {/* Multi-Child Sibling Dropdown Menu */}
+              {isParentDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsParentDropdownOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-xl border border-rose-100 z-50 p-2 animate-pop-in space-y-1">
+                    <div className="flex items-center justify-between px-2.5 py-1 text-[10px] font-bold text-slate-500 border-b border-slate-100 pb-1.5">
+                      <span>👨‍👩‍👧‍👦 수강 중인 자녀 선택 (총 {siblings.length}명)</span>
+                      <button onClick={onOpenParentModal} className="text-rose-500 underline text-[9px]">
+                        전체 변경
+                      </button>
+                    </div>
+
+                    <div className="space-y-1 pt-1">
+                      {siblings.map((sib) => {
+                        const isSelected = sib.id === currentStudent.id;
+                        return (
+                          <button
+                            key={sib.id}
+                            onClick={() => {
+                              onSelectStudent(sib.id);
+                              setIsParentDropdownOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all ${
+                              isSelected
+                                ? 'bg-rose-50 text-rose-800 font-extrabold border border-rose-200 shadow-2xs'
+                                : 'hover:bg-slate-50 text-slate-700 font-medium'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">{sib.avatarEmoji}</span>
+                              <div>
+                                <div className="font-extrabold">{sib.name}</div>
+                                <div className="text-[10px] text-slate-400 font-normal">{sib.grade}</div>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <span className="bg-rose-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                                선택됨
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="pt-1.5 border-t border-slate-100">
+                      <button
+                        onClick={onOpenParentModal}
+                        className="w-full text-center text-[10px] font-bold text-slate-500 hover:text-rose-600 py-1"
+                      >
+                        + 다른 재원생 아이디로 조회하기
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <button
                 onClick={onLogout}

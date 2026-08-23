@@ -8028,3 +8028,41 @@ export const SCHEDULE_DATA = {
     }
   ]
 };
+
+// 다자녀 형제/자매 매칭 헬퍼 함수
+export const getSiblings = (studentId) => {
+  const current = STUDENTS.find(s => s.id === studentId);
+  if (!current) return [STUDENTS[0]];
+
+  // 1. Explicit Sibling Pairs in Mock Data
+  // Pair 1: 배단우 (s01) & 배시우 (s03)
+  if (current.id === "s01" || current.id === "s03") {
+    return STUDENTS.filter(s => s.id === "s01" || s.id === "s03");
+  }
+  // Pair 2: 김우진 (s02) & 김다은 (s18)
+  if (current.id === "s02" || current.id === "s18") {
+    return STUDENTS.filter(s => s.id === "s02" || s.id === "s18");
+  }
+  // Pair 3: 정시우 (s04) & 정주원 (s14)
+  if (current.id === "s04" || current.id === "s14") {
+    return STUDENTS.filter(s => s.id === "s04" || s.id === "s14");
+  }
+  // Pair 4: 강다은 (s05) & 강현우 (s25)
+  if (current.id === "s05" || current.id === "s25") {
+    return STUDENTS.filter(s => s.id === "s05" || s.id === "s25");
+  }
+  // Pair 5: 조유준 (s06) & 조예린 (s30)
+  if (current.id === "s06" || current.id === "s30") {
+    return STUDENTS.filter(s => s.id === "s06" || s.id === "s30");
+  }
+
+  // Fallback: match by last name if same family
+  const lastName = current.name.charAt(0);
+  const sameLastName = STUDENTS.filter(s => s.name.startsWith(lastName));
+  if (sameLastName.length > 1) {
+    return sameLastName.slice(0, 3);
+  }
+
+  return [current];
+};
+

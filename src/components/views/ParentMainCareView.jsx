@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { Sparkles, Heart, MessageCircle, Clock, CheckCircle, CreditCard, FileText, Bell, Calendar, ChevronRight, UserCheck } from 'lucide-react';
-import { TUITION_DATA, ATTENDANCE_DATA, NOTICES, SCHEDULE_DATA } from '../../data/mockData';
+import { Sparkles, Heart, MessageCircle, Clock, CheckCircle, CreditCard, FileText, Bell, Calendar, ChevronRight, UserCheck, Users } from 'lucide-react';
+import { TUITION_DATA, ATTENDANCE_DATA, NOTICES, SCHEDULE_DATA, getSiblings } from '../../data/mockData';
 
 export default function ParentMainCareView({ 
   student, 
   artworksList, 
   onSelectArtwork,
-  onNavigateTab 
+  onNavigateTab,
+  onSelectStudent 
 }) {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+
+  // Get sibling children registered under this family
+  const siblings = getSiblings ? getSiblings(student.id) : [student];
 
   // Student specific data
   const studentArtworks = (artworksList || []).filter(a => a.studentId === student.id);
@@ -42,6 +46,44 @@ export default function ParentMainCareView({
   return (
     <div className="space-y-4 pb-20 animate-fade-in">
       
+      {/* Multi-Child Family Sibling Switcher Banner (if family has 2+ children enrolled) */}
+      {siblings.length > 1 && (
+        <div className="bg-gradient-to-r from-purple-600 via-rose-500 to-amber-500 text-white p-3 rounded-2xl shadow-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">👨‍👩‍👧‍👦</span>
+            <div>
+              <div className="text-xs font-black">
+                다자녀 수강가족 계정 (총 {siblings.length}명 수강 중)
+              </div>
+              <div className="text-[10px] text-rose-100 font-medium">
+                버튼 터치 1번에 자녀 화면이 즉시 전환됩니다!
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1">
+            {siblings.map((sib) => {
+              const isCurrent = sib.id === student.id;
+              return (
+                <button
+                  key={sib.id}
+                  onClick={() => onSelectStudent && onSelectStudent(sib.id)}
+                  className={`px-2.5 py-1 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1 active:scale-95 ${
+                    isCurrent
+                      ? 'bg-white text-rose-700 shadow-sm ring-2 ring-white/60'
+                      : 'bg-black/25 hover:bg-black/40 text-white border border-white/30'
+                  }`}
+                >
+                  <span>{sib.avatarEmoji}</span>
+                  <span>{sib.name}</span>
+                  {isCurrent && <span className="text-[9px] bg-rose-500 text-white px-1 rounded-full">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Top Child Profile Header Card */}
       <div className="bg-gradient-to-r from-rose-100 via-amber-100 to-sky-100 p-4 sm:p-5 rounded-3xl border border-rose-200/80 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
@@ -58,210 +100,213 @@ export default function ParentMainCareView({
                   {student.grade}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 mt-0.5 font-medium">
+              <p className="text-xs text-slate-600 font-medium mt-0.5">
                 {student.class} • 지도: {student.teacher}
               </p>
             </div>
           </div>
-
-          <span className="bg-slate-800 text-white text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-2xs shrink-0">
-            <UserCheck className="w-3 h-3 text-rose-300" /> 내 아이 암호화 전용
-          </span>
         </div>
 
-        {/* 3 Quick Child Stats */}
+        {/* 3 Summary Badges */}
         <div className="grid grid-cols-3 gap-2 text-center text-xs pt-1 border-t border-rose-200/60">
-          <div className="bg-white/80 backdrop-blur-xs p-2 rounded-2xl border border-rose-100">
-            <div className="text-[10px] text-slate-500 font-bold">🎨 미술 작품</div>
+          <div 
+            onClick={() => onNavigateTab('gallery')}
+            className="bg-white/80 backdrop-blur-xs p-2.5 rounded-2xl border border-rose-100 cursor-pointer hover:bg-white transition-all"
+          >
+            <div className="text-[10px] text-slate-500 font-bold">🎨 최근 작품</div>
             <div className="text-sm font-black text-rose-600">{studentArtworks.length}개 보유</div>
+            <div className="text-[9px] text-rose-400 font-bold mt-0.5">갤러리 보기 →</div>
           </div>
-          <div className="bg-white/80 backdrop-blur-xs p-2 rounded-2xl border border-emerald-100">
+
+          <div 
+            onClick={() => onNavigateTab('attendance')}
+            className="bg-white/80 backdrop-blur-xs p-2.5 rounded-2xl border border-emerald-100 cursor-pointer hover:bg-white transition-all"
+          >
             <div className="text-[10px] text-slate-500 font-bold">📅 8월 출석률</div>
             <div className="text-sm font-black text-emerald-600">{studentAttendance.attendanceRate}%</div>
+            <div className="text-[9px] text-emerald-500 font-bold mt-0.5">출석부 보기 →</div>
           </div>
-          <div className="bg-white/80 backdrop-blur-xs p-2 rounded-2xl border border-amber-100">
-            <div className="text-[10px] text-slate-500 font-bold">💳 8월 수납</div>
+
+          <div 
+            onClick={() => setShowReceiptModal(true)}
+            className="bg-white/80 backdrop-blur-xs p-2.5 rounded-2xl border border-amber-100 cursor-pointer hover:bg-white transition-all"
+          >
+            <div className="text-[10px] text-slate-500 font-bold">💳 8월 수강료</div>
             <div className={`text-xs font-black ${isPaid ? 'text-emerald-600' : 'text-amber-600'}`}>
               {studentTuition.statusText}
             </div>
+            <div className="text-[9px] text-amber-600 font-bold mt-0.5">청구서 보기 →</div>
           </div>
         </div>
       </div>
 
-      {/* SECTION 1: 🎨 MY CHILD 3 ARTWORKS (2026 NEW + 2025 HISTORY) */}
+      {/* Child Recent Artworks Preview */}
       <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center border-b border-slate-100 pb-2">
           <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
-            🎨 우리 {student.name}의 미술 작품 & 성장 기록
+            <Sparkles className="w-4 h-4 text-rose-500" /> {student.name} 학생의 최신 미술 작품집
           </h3>
           <button
             onClick={() => onNavigateTab('gallery')}
             className="text-xs text-rose-500 font-bold hover:underline flex items-center gap-0.5"
           >
-            전체 작품집 →
+            전체보기 <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          {studentArtworks.slice(0, 3).map((art) => (
-            <div
-              key={art.id}
-              onClick={() => onSelectArtwork(art)}
-              className="group bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col"
-            >
-              <div className="relative aspect-square bg-slate-200">
-                <img
-                  src={art.imageUrl}
-                  alt={art.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <span className="absolute top-1 left-1 bg-black/60 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">
-                  {art.year === '2025' ? '2025 과거' : '8월 신작'}
-                </span>
-              </div>
-              <div className="p-2 text-[10px] font-bold text-slate-800 truncate">
-                {art.title}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* SECTION 2: 📅 MY CHILD ATTENDANCE & LESSON MEMO */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-2.5">
-        <div className="flex justify-between items-center">
-          <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
-            📅 우리 {student.name}의 8월 출석 현황
-          </h3>
-          <button
-            onClick={() => onNavigateTab('attendance')}
-            className="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-0.5"
-          >
-            출석 달력 보기 →
-          </button>
-        </div>
-
-        <div className="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100 text-xs space-y-1">
-          <div className="flex justify-between text-[11px] text-slate-600 font-semibold">
-            <span>최근 등원일: 2026.08.07 (금)</span>
-            <span className="text-emerald-700 font-bold">정시 등원 (15:30)</span>
+        {studentArtworks.length === 0 ? (
+          <div className="text-center py-8 text-xs text-slate-400">
+            등록된 작품이 준비 중입니다.
           </div>
-          <p className="text-[11px] text-slate-600 bg-white p-2 rounded-xl border border-emerald-100/70 mt-1">
-            💬 <strong>선생님 피드백:</strong> {student.name}이가 형태와 입체감을 완성도 높게 표현하고 있습니다.
-          </p>
-        </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2.5">
+            {studentArtworks.slice(0, 2).map((art) => (
+              <div
+                key={art.id}
+                onClick={() => onSelectArtwork(art)}
+                className="group bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col"
+              >
+                <div className="relative aspect-4/3 bg-slate-200 overflow-hidden">
+                  <img
+                    src={art.imageUrl}
+                    alt={art.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-1.5 left-1.5 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                    {art.category}
+                  </div>
+                </div>
+                <div className="p-2.5 space-y-1">
+                  <h4 className="font-bold text-slate-800 text-xs line-clamp-1 group-hover:text-rose-600">
+                    {art.title}
+                  </h4>
+                  <div className="flex justify-between items-center text-[10px] text-slate-400">
+                    <span className="text-rose-500 font-bold">♥ {art.likes || 0}</span>
+                    <span>댓글 {(art.comments && art.comments.length) || 0}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* SECTION 3: 💳 MY CHILD TUITION INVOICE */}
+      {/* Tuition Invoice & Receipt Summary */}
       <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center border-b border-slate-100 pb-2">
           <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
-            💳 8월 수강료 원비 청구서
+            <CreditCard className="w-4 h-4 text-amber-500" /> 8월 수강료 청구 및 결제 안내
           </h3>
-          <button
-            onClick={() => setShowReceiptModal(true)}
-            className="text-xs text-rose-500 font-bold hover:underline flex items-center gap-0.5"
-          >
-            영수증 확인 →
-          </button>
+          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+            isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+          }`}>
+            {studentTuition.statusText}
+          </span>
         </div>
 
-        <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center justify-between text-xs">
-          <div>
-            <div className="font-bold text-slate-800">{studentTuition.courseName}</div>
-            <div className="text-[10px] text-slate-400">납부 기한: {studentTuition.dueDate} 까지</div>
+        <div className="bg-slate-50 p-3 rounded-2xl space-y-2 text-xs">
+          <div className="flex justify-between">
+            <span className="text-slate-500">수강 과목:</span>
+            <span className="font-bold text-slate-800">{studentTuition.courseName}</span>
           </div>
-
-          <div className="text-right">
-            <div className="font-black text-slate-800 text-base">
-              {studentTuition.amount ? studentTuition.amount.toLocaleString() : '180,000'}원
-            </div>
-            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-              isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
-            }`}>
-              {studentTuition.statusText}
+          <div className="flex justify-between">
+            <span className="text-slate-500">청구 청구액:</span>
+            <span className="font-extrabold text-rose-600 text-sm">
+              {studentTuition.amount ? studentTuition.amount.toLocaleString() + '원' : '180,000원'}
             </span>
           </div>
+          <div className="flex justify-between border-t border-slate-200/60 pt-2 text-[11px]">
+            <span className="text-slate-500">납부 기한:</span>
+            <span className="font-semibold text-slate-700">{studentTuition.dueDate} 까지</span>
+          </div>
         </div>
+
+        <button
+          onClick={() => setShowReceiptModal(true)}
+          className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95"
+        >
+          <FileText className="w-4 h-4 text-amber-400" /> 8월 모바일 수강료 영수증 확인 →
+        </button>
       </div>
 
-      {/* SECTION 4: 📢 ACADEMY NOTICES & SCHEDULE */}
+      {/* Academy Notices */}
       <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center border-b border-slate-100 pb-2">
           <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
-            📢 학원 주요 공지사항
+            <Bell className="w-4 h-4 text-sky-500" /> 리더스아트 학원 공지사항
           </h3>
           <button
-            onClick={() => onNavigateTab('notice')}
-            className="text-xs text-sky-600 font-bold hover:underline flex items-center gap-0.5"
+            onClick={() => onNavigateTab('notices')}
+            className="text-xs text-sky-600 font-bold hover:underline"
           >
             공지 전체보기 →
           </button>
         </div>
 
-        <div className="space-y-2 text-xs">
+        <div className="space-y-2">
           {recentNotices.map((n) => (
-            <div
-              key={n.id}
-              onClick={() => onNavigateTab('notice')}
-              className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-100 transition-colors cursor-pointer space-y-0.5"
-            >
-              <div className="flex items-center gap-2">
-                <span className="bg-sky-100 text-sky-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md">
-                  {n.tag}
+            <div key={n.id} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="bg-rose-100 text-rose-700 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                  {n.category || '공지'}
                 </span>
                 <span className="text-[10px] text-slate-400">{n.date}</span>
               </div>
-              <div className="font-bold text-slate-800 text-xs line-clamp-1">{n.title}</div>
+              <h4 className="font-bold text-slate-800">{n.title}</h4>
+              <p className="text-[11px] text-slate-600 line-clamp-2">{n.content}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Printable Receipt Modal */}
+      {/* Modal: Receipt Detail */}
       {showReceiptModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-rose-100 space-y-4 animate-pop-in">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                📄 리더스아트 수강료 수납 영수증
+              <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
+                💳 {student.name} 학생 8월 수강료 영수증
               </h3>
-              <button onClick={() => setShowReceiptModal(false)} className="text-slate-400 font-bold text-xs">✕</button>
+              <button
+                onClick={() => setShowReceiptModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-sm"
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60 space-y-2 text-xs text-slate-700">
-              <div className="text-center pb-2 border-b border-amber-200/40">
-                <h4 className="font-extrabold text-slate-800 text-sm">리더스아트 미술학원</h4>
-                <p className="text-[10px] text-slate-500">영수증 번호: {studentTuition.receiptNo}</p>
-              </div>
-
-              <div className="flex justify-between pt-1">
-                <span>학생명</span>
-                <strong className="text-slate-900">{studentTuition.studentName} ({studentTuition.grade})</strong>
+            <div className="bg-slate-50 p-4 rounded-2xl space-y-2.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500">영수증 번호:</span>
+                <span className="font-mono text-slate-700">{studentTuition.receiptNo}</span>
               </div>
               <div className="flex justify-between">
-                <span>수강 과목</span>
-                <strong>{studentTuition.courseName}</strong>
+                <span className="text-slate-500">수업 코스:</span>
+                <span className="font-bold">{studentTuition.courseName}</span>
               </div>
               <div className="flex justify-between">
-                <span>청구 월</span>
-                <strong>{studentTuition.month}</strong>
+                <span className="text-slate-500">수강료 금액:</span>
+                <span className="font-black text-rose-600 text-sm">
+                  {studentTuition.amount ? studentTuition.amount.toLocaleString() + '원' : '180,000원'}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-slate-200 pt-2">
+                <span className="text-slate-500">결제 상태:</span>
+                <span className={`font-bold ${isPaid ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {studentTuition.statusText}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span>수납 금액</span>
-                <strong className="text-rose-600 text-sm">{studentTuition.amount.toLocaleString()}원</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>수납 상태</span>
-                <strong className={isPaid ? "text-emerald-600" : "text-amber-600"}>{studentTuition.statusText}</strong>
+                <span className="text-slate-500">결제 방식:</span>
+                <span className="font-medium text-slate-700">{studentTuition.paymentMethod}</span>
               </div>
             </div>
 
             <button
               onClick={() => setShowReceiptModal(false)}
-              className="w-full py-2.5 bg-rose-500 text-white font-bold rounded-2xl text-xs"
+              className="w-full py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-2xl text-xs shadow-xs"
             >
-              닫기
+              확인 완료 및 닫기
             </button>
           </div>
         </div>
