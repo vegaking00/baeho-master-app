@@ -26,6 +26,40 @@ export const STUDENTS = [
     }
   },
   {
+    "id": "s51",
+    "name": "김혜윤",
+    "grade": "7세 유치부",
+    "age": 7,
+    "ageGroup": "유치부",
+    "ageGroupLabel": "유치부 (5~7세)",
+    "class": "창의 표현 & 클레이반",
+    "avatarColor": "bg-amber-400",
+    "avatarEmoji": "👧",
+    "teacher": "신연정 원장님 / 주미 선생님",
+    "parentAccount": {
+      "username": "parent_s02",
+      "email": "s02@leadersart.com",
+      "password": "pass02"
+    }
+  },
+  {
+    "id": "s52",
+    "name": "김진우",
+    "grade": "초등 6학년 (13세)",
+    "age": 13,
+    "ageGroup": "초등고학년",
+    "ageGroupLabel": "초등 고학년 (4~6학년)",
+    "class": "웹툰 일러스트 & 입체 조소반",
+    "avatarColor": "bg-purple-400",
+    "avatarEmoji": "🧑",
+    "teacher": "신연정 원장님 / 주미 선생님",
+    "parentAccount": {
+      "username": "parent_s02",
+      "email": "s02@leadersart.com",
+      "password": "pass02"
+    }
+  },
+  {
     "id": "s02",
     "name": "김우진",
     "grade": "초등 3학년 (10세)",
@@ -861,6 +895,116 @@ export const STUDENTS = [
 ];
 
 export const ARTWORKS = [
+  {
+    id: "art-s51-1",
+    studentId: "s51",
+    studentName: "김혜윤",
+    ageGroup: "유치부",
+    title: "김혜윤의 알록달록 무지개 클레이 공룡",
+    category: "조소/만들기",
+    imageUrl: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80",
+    description: "7세 혜윤이가 섬세하게 주물러 완성한 알록달록 클레이 케이크와 공룡 친구들입니다.",
+    materials: "컬러 클레이, 폼볼",
+    year: "2026",
+    month: "08월",
+    likes: 24,
+    teacherName: "주미 선생님",
+    comments: [
+      { id: "c1", author: "김우진 엄마", text: "혜윤이 공룡 클레이 너무 귀엽네요! 원장님 감사합니다 ❤️", date: "2026.08.20" }
+    ]
+  },
+  {
+    id: "art-s51-2",
+    studentId: "s51",
+    studentName: "김혜윤",
+    ageGroup: "유치부",
+    title: "김혜윤의 비밀 숲속 요정 드로잉",
+    category: "수채화",
+    imageUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80",
+    description: "동화 속 비밀 숲과 요정들을 예쁜 파스텔 톤 수채화로 표현했습니다.",
+    materials: "수채화 물감, 오일파스텔",
+    year: "2026",
+    month: "08월",
+    likes: 19,
+    teacherName: "신연정 원장님",
+    comments: [
+      { id: "c2", author: "주미 선생님", text: "혜윤이의 색감 믹스 능력이 아주 훌륭합니다!", date: "2026.08.18" }
+    ]
+  },
+  {
+    id: "art-hist-s51-1",
+    studentId: "s51",
+    studentName: "김혜윤",
+    ageGroup: "유치부",
+    title: "2025년 혜윤이의 첫 손가락 핑거페인팅",
+    category: "창의표현",
+    imageUrl: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=800&q=80",
+    description: "6세 시절 혜윤이의 감성 스케치와 자유로운 손가락 물감놀이 초기 기록입니다.",
+    materials: "핑거 페인트, 켄트지",
+    year: "2025",
+    month: "10월",
+    likes: 30,
+    teacherName: "신연정 원장님",
+    feedback: "초기 감정 표현 수준에서 현재 정교한 조형 능력으로 놀랍게 성장했습니다!",
+    comments: [
+      { id: "c3", author: "김우진 엄마", text: "작년 혜윤이 손가락 물감 놀이할 때가 엊그제 같네요 ㅎㅎ", date: "2025.10.15" }
+    ]
+  },
+  {
+    id: "art-s52-1",
+    studentId: "s52",
+    studentName: "김진우",
+    ageGroup: "초등고학년",
+    title: "김진우의 SF 미래도시 드론 수채화",
+    category: "일러스트",
+    imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80",
+    description: "초등 6학년 진우의 정교한 2점 투시도법 기법으로 완성된 SF 미래도시 수채화 작품입니다.",
+    materials: "수채화 물감, 마이크로펜 0.3mm",
+    year: "2026",
+    month: "08월",
+    likes: 38,
+    teacherName: "신연정 원장님",
+    comments: [
+      { id: "c4", author: "김우진 엄마", text: "진우의 미래도시 그림 투시가 정말 멋지네요!", date: "2026.08.21" }
+    ]
+  },
+  {
+    id: "art-s52-2",
+    studentId: "s52",
+    studentName: "김진우",
+    ageGroup: "초등고학년",
+    title: "김진우의 사이버펑크 입체 로봇 조소",
+    category: "조소/만들기",
+    imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+    description: "폴리머클레이와 관절 구조를 이용해 완성한 입체 사이버펑크 피규어 작품입니다.",
+    materials: "폴리머클레이, 와이어",
+    year: "2026",
+    month: "08월",
+    likes: 42,
+    teacherName: "주미 선생님",
+    comments: [
+      { id: "c5", author: "신연정 원장님", text: "진우의 입체 관절 디테일 완벽합니다!", date: "2026.08.19" }
+    ]
+  },
+  {
+    id: "art-hist-s52-1",
+    studentId: "s52",
+    studentName: "김진우",
+    ageGroup: "초등고학년",
+    title: "2025년 진우의 수채화 입문 뎃생 정물화",
+    category: "수채화",
+    imageUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80",
+    description: "5학년 시절 진우의 초기 빛 명암 정물 스케치 기록입니다.",
+    materials: "4B 연필, 켄트지",
+    year: "2025",
+    month: "09월",
+    likes: 29,
+    teacherName: "신연정 원장님",
+    feedback: "기본 뎃생 선 처리에서 현재 일러스트 및 메카닉 조소 분야로 매우 훌륭하게 발전했습니다.",
+    comments: [
+      { id: "c6", author: "김우진 엄마", text: "작년에 기본기 연마하더니 올해 실력이 쑥 올랐네요!", date: "2025.09.20" }
+    ]
+  },
   {
     "id": "art-s01-1",
     "studentId": "s01",
@@ -8034,14 +8178,14 @@ export const getSiblings = (studentId) => {
   const current = STUDENTS.find(s => s.id === studentId);
   if (!current) return [STUDENTS[0]];
 
-  // 1. Explicit Sibling Pairs in Mock Data
+  // Kim 3-Sibling Family: 김우진 (s02), 김혜윤 (s51), 김진우 (s52)
+  if (current.id === "s02" || current.id === "s51" || current.id === "s52" || current.name === "김우진" || current.name === "김혜윤" || current.name === "김진우") {
+    return STUDENTS.filter(s => s.id === "s02" || s.id === "s51" || s.id === "s52");
+  }
+
   // Pair 1: 배단우 (s01) & 배시우 (s03)
   if (current.id === "s01" || current.id === "s03") {
     return STUDENTS.filter(s => s.id === "s01" || s.id === "s03");
-  }
-  // Pair 2: 김우진 (s02) & 김다은 (s18)
-  if (current.id === "s02" || current.id === "s18") {
-    return STUDENTS.filter(s => s.id === "s02" || s.id === "s18");
   }
   // Pair 3: 정시우 (s04) & 정주원 (s14)
   if (current.id === "s04" || current.id === "s14") {
@@ -8056,7 +8200,6 @@ export const getSiblings = (studentId) => {
     return STUDENTS.filter(s => s.id === "s06" || s.id === "s30");
   }
 
-  // Fallback: match by last name if same family
   const lastName = current.name.charAt(0);
   const sameLastName = STUDENTS.filter(s => s.name.startsWith(lastName));
   if (sameLastName.length > 1) {
