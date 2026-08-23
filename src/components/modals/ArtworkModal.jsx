@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
-import { X, Heart, MessageCircle, Share2, Download, Sparkles, UserCheck, Send } from 'lucide-react';
+import { X, Heart, MessageCircle, Share2, Download, Sparkles, UserCheck, Send, Pencil, Trash2, ShieldCheck } from 'lucide-react';
 
-export default function ArtworkModal({ artwork, onClose, onToggleLike, onAddComment }) {
+export default function ArtworkModal({ 
+  artwork, 
+  onClose, 
+  onToggleLike, 
+  onAddComment, 
+  isAdmin, 
+  onOpenEditModal, 
+  onDeleteArtwork 
+}) {
   const [commentInput, setCommentInput] = useState('');
   const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(artwork.likes || 0);
+  const [likeCount, setLikeCount] = useState(artwork?.likes || 0);
 
   if (!artwork) return null;
 
@@ -24,6 +32,15 @@ export default function ArtworkModal({ artwork, onClose, onToggleLike, onAddComm
     setCommentInput('');
   };
 
+  const handleDelete = () => {
+    if (window.confirm(`정말로 '${artwork.title}' 작품을 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.`)) {
+      if (onDeleteArtwork) {
+        onDeleteArtwork(artwork.id);
+      }
+      onClose();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-fade-in">
       <div className="bg-white w-full max-w-lg max-h-[90vh] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-rose-100 animate-pop-in">
@@ -34,7 +51,7 @@ export default function ArtworkModal({ artwork, onClose, onToggleLike, onAddComm
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700">
               {artwork.category}
             </span>
-            <span className="text-xs text-slate-400 font-medium">{artwork.date}</span>
+            <span className="text-xs text-slate-400 font-medium">{artwork.date || artwork.month || '2026'}</span>
           </div>
           <button
             onClick={onClose}
@@ -46,6 +63,36 @@ export default function ArtworkModal({ artwork, onClose, onToggleLike, onAddComm
 
         {/* Scrollable Body */}
         <div className="overflow-y-auto flex-1 p-4 space-y-4">
+          
+          {/* Admin Management Bar (Only shown in Director Admin Mode!) */}
+          {isAdmin && (
+            <div className="bg-gradient-to-r from-purple-700 via-rose-600 to-amber-500 text-white p-3 rounded-2xl shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-1.5 font-bold text-xs">
+                <ShieldCheck className="w-4 h-4 text-amber-300" />
+                <span>원장님 전용 관리</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    onClose();
+                    if (onOpenEditModal) onOpenEditModal(artwork);
+                  }}
+                  className="bg-white text-purple-900 hover:bg-rose-50 font-extrabold px-3 py-1 rounded-xl text-[11px] flex items-center gap-1 shadow-xs active:scale-95 transition-all"
+                >
+                  <Pencil className="w-3.5 h-3.5" /> 수정
+                </button>
+
+                <button
+                  onClick={handleDelete}
+                  className="bg-slate-900 hover:bg-black text-rose-300 font-extrabold px-3 py-1 rounded-xl text-[11px] flex items-center gap-1 shadow-xs active:scale-95 transition-all border border-rose-300/40"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> 삭제
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Artwork Image Container */}
           <div className="relative group rounded-2xl overflow-hidden bg-slate-900 border border-slate-100 shadow-md">
             <img
@@ -72,6 +119,11 @@ export default function ArtworkModal({ artwork, onClose, onToggleLike, onAddComm
             <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
               <span className="font-semibold text-rose-500">🎨 재료:</span> {artwork.materials}
             </p>
+            {artwork.description && (
+              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                {artwork.description}
+              </p>
+            )}
           </div>
 
           {/* Tags */}
@@ -92,7 +144,7 @@ export default function ArtworkModal({ artwork, onClose, onToggleLike, onAddComm
                 <span className="text-xl">{artwork.teacherAvatar || '👩‍🎨'}</span>
                 <div>
                   <div className="text-xs font-bold text-amber-900 flex items-center gap-1">
-                    {artwork.teacherName} 코멘트
+                    {artwork.teacherName || '신연정 원장님'} 코멘트
                     <span className="bg-amber-200 text-amber-900 text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">담임</span>
                   </div>
                   <div className="text-[10px] text-amber-700/80">원내 실기 관찰 기록</div>
@@ -102,7 +154,7 @@ export default function ArtworkModal({ artwork, onClose, onToggleLike, onAddComm
             </div>
             
             <p className="text-xs text-slate-700 leading-relaxed font-medium bg-white/70 p-3 rounded-xl border border-amber-100 shadow-2xs">
-              "{artwork.feedback}"
+              "{artwork.feedback || '아이의 표현 방식이 매우 돋보이며 창의성이 풍부합니다!'}"
             </p>
           </div>
 
@@ -145,10 +197,10 @@ export default function ArtworkModal({ artwork, onClose, onToggleLike, onAddComm
               </p>
             ) : (
               <div className="space-y-2">
-                {artwork.comments.map((c) => (
-                  <div key={c.id} className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs space-y-1">
+                {artwork.comments.map((c, idx) => (
+                  <div key={c.id || idx} className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs space-y-1">
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-rose-600">{c.name}</span>
+                      <span className="font-bold text-rose-600">{c.author || c.name}</span>
                       <span className="text-[10px] text-slate-400">{c.date}</span>
                     </div>
                     <p className="text-slate-700">{c.text}</p>

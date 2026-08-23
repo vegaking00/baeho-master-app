@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Calendar, Heart, MessageCircle, Plus, ChevronRight, Clock, Award, Filter, ShieldCheck, UserCheck, X, CheckCircle, FileText, CreditCard } from 'lucide-react';
+import { Sparkles, Calendar, Heart, MessageCircle, Plus, ChevronRight, Clock, Award, Filter, ShieldCheck, UserCheck, X, CheckCircle, FileText, CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { STUDENTS, TUITION_DATA, ATTENDANCE_DATA, ARTWORKS } from '../../data/mockData';
 
 export default function GalleryTab({ 
@@ -9,6 +9,7 @@ export default function GalleryTab({
   onOpenAddModal, 
   isAdmin, 
   onDeleteArtwork,
+  onOpenEditModal,
   onSelectStudent 
 }) {
   const [activeView, setActiveView] = useState('gallery'); // 'gallery' | 'timeline'
@@ -245,26 +246,66 @@ export default function GalleryTab({
               {currentArtworks.map((art) => (
                 <div
                   key={art.id}
-                  onClick={() => onSelectArtwork(art)}
-                  className="group bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col"
+                  className="group bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-2xs hover:shadow-md transition-all flex flex-col relative"
                 >
+                  {/* Quick Admin Control Overlay Buttons (Only when isAdmin === true!) */}
+                  {isAdmin && (
+                    <div className="absolute top-2 left-2 right-2 z-20 flex justify-between items-center pointer-events-auto">
+                      <div className="bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                        {art.category}
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onOpenEditModal) onOpenEditModal(art);
+                          }}
+                          className="bg-purple-600 hover:bg-purple-700 text-white text-[9px] font-bold px-2 py-0.5 rounded-md shadow-md flex items-center gap-0.5 active:scale-95"
+                          title="작품 수정"
+                        >
+                          <Pencil className="w-2.5 h-2.5" /> 수정
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`정말로 '${art.title}' 작품을 삭제하시겠습니까?`)) {
+                              if (onDeleteArtwork) onDeleteArtwork(art.id);
+                            }
+                          }}
+                          className="bg-rose-600 hover:bg-rose-700 text-white text-[9px] font-bold px-2 py-0.5 rounded-md shadow-md flex items-center gap-0.5 active:scale-95"
+                          title="작품 삭제"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" /> 삭제
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Artwork Image Container */}
-                  <div className="relative aspect-4/3 bg-slate-100 overflow-hidden">
+                  <div 
+                    onClick={() => onSelectArtwork(art)}
+                    className="relative aspect-4/3 bg-slate-100 overflow-hidden cursor-pointer"
+                  >
                     <img
                       src={art.imageUrl}
                       alt={art.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
-                      {art.category}
-                    </div>
+                    {!isAdmin && (
+                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                        {art.category}
+                      </div>
+                    )}
                     <div className="absolute top-2 right-2 bg-rose-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
                       {art.month || "08월"}
                     </div>
                   </div>
 
                   {/* Artwork Content Summary */}
-                  <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+                  <div 
+                    onClick={() => onSelectArtwork(art)}
+                    className="p-3 flex-1 flex flex-col justify-between space-y-2 cursor-pointer"
+                  >
                     <div>
                       <h3 className="font-bold text-slate-800 text-xs line-clamp-1 group-hover:text-rose-600 transition-colors">
                         {art.title}
@@ -313,30 +354,58 @@ export default function GalleryTab({
               {pastArtworks.map((art) => (
                 <div
                   key={art.id}
-                  onClick={() => onSelectArtwork(art)}
-                  className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-2xs hover:shadow-md transition-all cursor-pointer flex gap-3"
+                  className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-2xs hover:shadow-md transition-all flex gap-3 relative"
                 >
                   <img
+                    onClick={() => onSelectArtwork(art)}
                     src={art.imageUrl}
                     alt={art.title}
-                    className="w-24 h-24 object-cover rounded-xl shrink-0"
+                    className="w-24 h-24 object-cover rounded-xl shrink-0 cursor-pointer"
                   />
                   <div className="flex-1 space-y-1.5 flex flex-col justify-between">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="bg-purple-100 text-purple-700 text-[9px] font-bold px-2 py-0.5 rounded-full">
-                          2025년 10월 기록
-                        </span>
-                        <span className="text-[10px] text-slate-400">{art.category}</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="bg-purple-100 text-purple-700 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                            2025년 10월 기록
+                          </span>
+                          <span className="text-[10px] text-slate-400">{art.category}</span>
+                        </div>
+
+                        {/* Admin Quick Control */}
+                        {isAdmin && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => onOpenEditModal && onOpenEditModal(art)}
+                              className="text-purple-600 font-bold text-[10px] hover:underline"
+                            >
+                              수정
+                            </button>
+                            <span className="text-slate-300 text-[10px]">|</span>
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`정말로 '${art.title}' 작품을 삭제하시겠습니까?`)) {
+                                  if (onDeleteArtwork) onDeleteArtwork(art.id);
+                                }
+                              }}
+                              className="text-rose-600 font-bold text-[10px] hover:underline"
+                            >
+                              삭제
+                            </button>
+                          </div>
+                        )}
                       </div>
-                      <h4 className="font-bold text-slate-800 text-xs mt-1">{art.title}</h4>
-                      <p className="text-[10px] text-slate-500 line-clamp-2 mt-0.5">
+
+                      <h4 onClick={() => onSelectArtwork(art)} className="font-bold text-slate-800 text-xs mt-1 cursor-pointer">
+                        {art.title}
+                      </h4>
+                      <p onClick={() => onSelectArtwork(art)} className="text-[10px] text-slate-500 line-clamp-2 mt-0.5 cursor-pointer">
                         {art.feedback}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-50">
-                      <span>👩‍🎨 {art.teacherName}</span>
+                    <div onClick={() => onSelectArtwork(art)} className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-50 cursor-pointer">
+                      <span>👩‍🎨 {art.teacherName || '신연정 원장님'}</span>
                       <span className="text-rose-500 font-bold flex items-center gap-0.5">
                         💬 댓글 {(art.comments && art.comments.length) || 0}개 보기 →
                       </span>

@@ -10,6 +10,7 @@ import AttendanceTab from './components/tabs/AttendanceTab';
 import ScheduleTab from './components/tabs/ScheduleTab';
 import TuitionTab from './components/tabs/TuitionTab';
 import ArtworkModal from './components/modals/ArtworkModal';
+import ArtworkEditModal from './components/modals/ArtworkEditModal';
 import NoticeModal from './components/modals/NoticeModal';
 import AddArtworkModal from './components/modals/AddArtworkModal';
 import AddNoticeModal from './components/modals/AddNoticeModal';
@@ -28,6 +29,7 @@ import {
   subscribeAuthStatus,
   adminLogout,
   addArtworkToFirestore,
+  updateArtworkInFirestore,
   deleteArtworkFromFirestore,
   addNoticeToFirestore,
   deleteNoticeFromFirestore,
@@ -47,6 +49,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'gallery' | 'notice' | 'attendance' | 'tuition' | 'schedule'
   
   const [selectedArtwork, setSelectedArtwork] = useState(null);
+  const [editingArtwork, setEditingArtwork] = useState(null);
   const [selectedNotice, setSelectedNotice] = useState(null);
   
   // Modals state
@@ -131,8 +134,19 @@ export default function App() {
     await addArtworkToFirestore(newArtwork);
   };
 
+  const handleEditArtwork = async (updatedArtwork) => {
+    setArtworksList(prev => prev.map(a => a.id === updatedArtwork.id ? updatedArtwork : a));
+    if (selectedArtwork && selectedArtwork.id === updatedArtwork.id) {
+      setSelectedArtwork(updatedArtwork);
+    }
+    await updateArtworkInFirestore(updatedArtwork.id, updatedArtwork);
+  };
+
   const handleDeleteArtwork = async (artworkId) => {
     setArtworksList(prev => prev.filter(a => a.id !== artworkId));
+    if (selectedArtwork && selectedArtwork.id === artworkId) {
+      setSelectedArtwork(null);
+    }
     await deleteArtworkFromFirestore(artworkId);
   };
 
@@ -219,9 +233,9 @@ export default function App() {
     setNoticesList(prev => prev.map(n => n.id === noticeId ? { ...n, isRead: true } : n));
   };
 
-  // --- RENDER SCREEN BASED ON USER ROLE ---
+  // --- RENDER COMPONENT ROUTING ---
 
-  // 1. GUEST MODE: INITIAL INTEGRATED LANDING PAGE
+  // 1. First Landing Gate: LoginLandingPage
   if (userRole === 'guest') {
     return (
       <LoginLandingPage
@@ -231,12 +245,12 @@ export default function App() {
     );
   }
 
+  // 2. Logged-in App Layout (Director vs Parent)
   return (
-    <div className="min-h-screen bg-slate-200/80 flex items-center justify-center p-0 sm:p-4">
-      {/* Mobile Device Frame Container */}
-      <div className="mobile-container w-full min-h-screen sm:min-h-[880px] bg-slate-50 flex flex-col shadow-2xl overflow-hidden relative">
+    <div className="min-h-screen bg-slate-100 flex flex-col justify-between">
+      <div className="w-full max-w-md mx-auto min-h-screen bg-white shadow-xl flex flex-col relative overflow-x-hidden">
         
-        {/* Header Bar */}
+        {/* Sticky Header */}
         <Header
           selectedStudent={selectedStudentId}
           onSelectStudent={handleSelectStudentWithInspector}
@@ -248,13 +262,12 @@ export default function App() {
           onLogout={handleLogout}
         />
 
-        {/* Scrollable Main Content Area */}
-        <main className="flex-1 overflow-y-auto px-4 py-3">
+        {/* Main Content View Switcher */}
+        <main className="flex-1 p-3 sm:p-4 pb-24">
           
-          {/* TAB: HOME MAIN SCREEN (DIRECTOR vs PARENT SPECIFIC MAIN) */}
+          {/* TAB 0: HOME VIEW (Director Main vs Parent Main) */}
           {activeTab === 'home' && (
             userRole === 'admin' ? (
-              /* Director Admin Command Center Main View */
               <AdminMainDashboardView
                 onSelectStudent={handleSelectStudentWithInspector}
                 onOpenAddArtwork={() => setShowAddArtworkModal(true)}
@@ -265,24 +278,26 @@ export default function App() {
                 tuitionList={tuitionList}
               />
             ) : (
-              /* Parent Child Care Main View */
               <ParentMainCareView
                 student={currentStudent}
                 artworksList={artworksList}
-                onSelectArtwork={setSelectedArtwork}
+                onSelectArtwork={(art) => setSelectedArtwork(art)}
                 onNavigateTab={setActiveTab}
+                onSelectStudent={handleSelectStudentWithInspector}
               />
             )
           )}
 
+          {/* OTHER TABS */}
           {activeTab === 'gallery' && (
             <GalleryTab
               artworks={artworksList}
               student={currentStudent}
-              onSelectArtwork={setSelectedArtwork}
+              onSelectArtwork={(art) => setSelectedArtwork(art)}
               onOpenAddModal={() => setShowAddArtworkModal(true)}
               isAdmin={userRole === 'admin'}
               onDeleteArtwork={handleDeleteArtwork}
+              onOpenEditModal={(art) => setEditingArtwork(art)}
               onSelectStudent={handleSelectStudentWithInspector}
             />
           )}
@@ -290,12 +305,9 @@ export default function App() {
           {activeTab === 'notice' && (
             <NoticeTab
               notices={noticesList}
-              onSelectNotice={(notice) => {
-                setSelectedNotice(notice);
-                handleMarkNoticeRead(notice.id);
-              }}
-              isAdmin={userRole === 'admin'}
+              onSelectNotice={(n) => setSelectedNotice(n)}
               onOpenAddNoticeModal={() => setShowAddNoticeModal(true)}
+              isAdmin={userRole === 'admin'}
               onDeleteNotice={handleDeleteNotice}
             />
           )}
@@ -342,6 +354,17 @@ export default function App() {
             onClose={() => setSelectedArtwork(null)}
             onToggleLike={handleToggleLike}
             onAddComment={handleAddComment}
+            isAdmin={userRole === 'admin'}
+            onOpenEditModal={(art) => setEditingArtwork(art)}
+            onDeleteArtwork={handleDeleteArtwork}
+          />
+        )}
+
+        {editingArtwork && (
+          <ArtworkEditModal
+            artwork={editingArtwork}
+            onClose={() => setEditingArtwork(null)}
+            onSaveEdit={handleEditArtwork}
           />
         )}
 

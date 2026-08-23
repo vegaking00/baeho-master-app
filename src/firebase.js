@@ -190,6 +190,15 @@ export const addArtworkToFirestore = async (artworkData) => {
   }
 };
 
+export const updateArtworkInFirestore = async (artworkId, updatedData) => {
+  try {
+    const artRef = doc(db, "gallery", artworkId);
+    await updateDoc(artRef, updatedData);
+  } catch (e) {
+    console.error("Firestore 작품 수정 오류:", e);
+  }
+};
+
 export const deleteArtworkFromFirestore = async (artworkId) => {
   try {
     await deleteDoc(doc(db, "gallery", artworkId));
