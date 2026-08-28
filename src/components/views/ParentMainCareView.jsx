@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Sparkles, Heart, MessageCircle, Clock, CheckCircle, CreditCard, FileText, Bell, Calendar, ChevronRight, UserCheck, Users } from 'lucide-react';
+import { Sparkles, Heart, MessageCircle, Clock, CheckCircle, CreditCard, FileText, Bell, Calendar, ChevronRight, UserCheck, Users, Smartphone, Zap } from 'lucide-react';
 import { TUITION_DATA, ATTENDANCE_DATA, NOTICES, SCHEDULE_DATA, getSiblings } from '../../data/mockData';
+import MobilePaymentSimulatorModal from '../modals/MobilePaymentSimulatorModal';
 
 export default function ParentMainCareView({ 
   student, 
   artworksList, 
   onSelectArtwork,
   onNavigateTab,
-  onSelectStudent 
+  onSelectStudent,
+  onCompletePayment 
 }) {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Get sibling children registered under this family
   const siblings = getSiblings ? getSiblings(student.id) : [student];
@@ -128,14 +131,16 @@ export default function ParentMainCareView({
           </div>
 
           <div 
-            onClick={() => setShowReceiptModal(true)}
+            onClick={() => isPaid ? setShowReceiptModal(true) : setShowPaymentModal(true)}
             className="bg-white/80 backdrop-blur-xs p-2.5 rounded-2xl border border-amber-100 cursor-pointer hover:bg-white transition-all"
           >
             <div className="text-[10px] text-slate-500 font-bold">💳 8월 수강료</div>
             <div className={`text-xs font-black ${isPaid ? 'text-emerald-600' : 'text-amber-600'}`}>
               {studentTuition.statusText}
             </div>
-            <div className="text-[9px] text-amber-600 font-bold mt-0.5">청구서 보기 →</div>
+            <div className="text-[9px] text-amber-600 font-bold mt-0.5">
+              {isPaid ? '영수증 확인 →' : '1초 결제하기 →'}
+            </div>
           </div>
         </div>
       </div>
@@ -191,11 +196,13 @@ export default function ParentMainCareView({
         )}
       </div>
 
-      {/* Tuition Invoice & Receipt Summary */}
+      {/* ------------------------------------------------------------------ */}
+      {/* TUITION INVOICE & AUTOMATIC MOBILE PAYMENT CARD */}
+      {/* ------------------------------------------------------------------ */}
       <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
         <div className="flex justify-between items-center border-b border-slate-100 pb-2">
           <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
-            <CreditCard className="w-4 h-4 text-amber-500" /> 8월 수강료 청구 및 결제 안내
+            <CreditCard className="w-4 h-4 text-amber-500" /> 8월 수강료 청구 및 모바일 1초 결제
           </h3>
           <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
             isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
@@ -216,17 +223,39 @@ export default function ParentMainCareView({
             </span>
           </div>
           <div className="flex justify-between border-t border-slate-200/60 pt-2 text-[11px]">
-            <span className="text-slate-500">납부 기한:</span>
-            <span className="font-semibold text-slate-700">{studentTuition.dueDate} 까지</span>
+            <span className="text-slate-500">납부 상태:</span>
+            <span className={`font-extrabold ${isPaid ? 'text-emerald-600' : 'text-amber-600'}`}>
+              {isPaid ? `수납 완료 (${studentTuition.paidDate || '2026.08.28'} 결제됨)` : `${studentTuition.dueDate} 까지 납부`}
+            </span>
           </div>
         </div>
 
-        <button
-          onClick={() => setShowReceiptModal(true)}
-          className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95"
-        >
-          <FileText className="w-4 h-4 text-amber-400" /> 8월 모바일 수강료 영수증 확인 →
-        </button>
+        {/* Dynamic Buttons: Paid (Receipt Button) vs Unpaid (KakaoPay / Card Payment Simulator) */}
+        {isPaid ? (
+          <button
+            onClick={() => setShowReceiptModal(true)}
+            className="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95"
+          >
+            <FileText className="w-4 h-4 text-amber-400" /> 8월 모바일 수강료 영수증 확인 →
+          </button>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button
+              onClick={() => setShowPaymentModal(true)}
+              className="py-3 bg-amber-400 hover:bg-amber-500 text-amber-950 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all"
+            >
+              <span>💛 카카오페이 1초 결제</span>
+            </button>
+
+            <button
+              onClick={() => setShowPaymentModal(true)}
+              className="py-3 bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>💳 신용/체크카드 결제</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Academy Notices */}
@@ -258,6 +287,20 @@ export default function ParentMainCareView({
           ))}
         </div>
       </div>
+
+      {/* Modal: Mobile Payment Simulator */}
+      {showPaymentModal && (
+        <MobilePaymentSimulatorModal
+          tuition={studentTuition}
+          student={student}
+          onClose={() => setShowPaymentModal(false)}
+          onCompletePayment={(tId, pMethod) => {
+            if (onCompletePayment) {
+              onCompletePayment(tId, pMethod);
+            }
+          }}
+        />
+      )}
 
       {/* Modal: Receipt Detail */}
       {showReceiptModal && (
@@ -297,7 +340,7 @@ export default function ParentMainCareView({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">결제 방식:</span>
+                <span className="text-slate-500">결제 수단:</span>
                 <span className="font-medium text-slate-700">{studentTuition.paymentMethod}</span>
               </div>
             </div>

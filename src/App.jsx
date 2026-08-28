@@ -284,6 +284,12 @@ export default function App() {
                 onSelectArtwork={(art) => setSelectedArtwork(art)}
                 onNavigateTab={setActiveTab}
                 onSelectStudent={handleSelectStudentWithInspector}
+                onCompletePayment={(tId, pMethod) => handleUpdateTuition(tId, { 
+                  status: 'paid', 
+                  statusText: '수납 완료', 
+                  paidDate: new Date().toISOString().slice(0, 10).replace(/-/g, '.'), 
+                  paymentMethod: pMethod 
+                })}
               />
             )
           )}
