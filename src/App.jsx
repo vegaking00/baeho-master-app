@@ -19,6 +19,7 @@ import AdminLoginModal from './components/modals/AdminLoginModal';
 import ParentLoginModal from './components/modals/ParentLoginModal';
 import AdminDashboardModal from './components/modals/AdminDashboardModal';
 import StudentDetailInspectorModal from './components/modals/StudentDetailInspectorModal';
+import ExcelStudentImportModal from './components/modals/ExcelStudentImportModal';
 import { STUDENTS, ARTWORKS, NOTICES, ATTENDANCE_DATA, SCHEDULE_DATA, TUITION_DATA } from './data/mockData';
 import { 
   subscribeGallery, 
@@ -59,6 +60,7 @@ export default function App() {
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
   const [showParentModal, setShowParentModal] = useState(false);
   const [showDashboardModal, setShowDashboardModal] = useState(false);
+  const [showExcelModal, setShowExcelModal] = useState(false);
   const [inspectorStudentId, setInspectorStudentId] = useState(null); // When director inspects a child
 
   // Firestore Realtime Collections state
@@ -274,6 +276,7 @@ export default function App() {
                 onOpenAddNotice={() => setShowAddNoticeModal(true)}
                 onOpenAddSchedule={() => setShowAddScheduleModal(true)}
                 onOpenDashboardModal={() => setShowDashboardModal(true)}
+                onOpenExcelImport={() => setShowExcelModal(true)}
                 onNavigateTab={setActiveTab}
                 tuitionList={tuitionList}
               />
@@ -425,6 +428,16 @@ export default function App() {
             onClose={() => setShowDashboardModal(false)}
             onSelectStudent={handleSelectStudentWithInspector}
             tuitionList={tuitionList}
+          />
+        )}
+
+        {showExcelModal && (
+          <ExcelStudentImportModal
+            onClose={() => setShowExcelModal(false)}
+            onImportStudents={(newStudents) => {
+              STUDENTS.push(...newStudents);
+              alert(`🎉 총 ${newStudents.length}명의 수강생 정보가 1초 만에 학원 데이터베이스에 성공적으로 일괄 추가되었습니다!`);
+            }}
           />
         )}
 

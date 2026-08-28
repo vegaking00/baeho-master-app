@@ -8,6 +8,7 @@ export default function AdminMainDashboardView({
   onOpenAddNotice, 
   onOpenAddSchedule,
   onOpenDashboardModal,
+  onOpenExcelImport,
   onNavigateTab,
   tuitionList 
 }) {
@@ -105,30 +106,38 @@ export default function AdminMainDashboardView({
         </div>
       </div>
 
-      {/* 3 Quick Admin Action Buttons */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Quick Admin Action Buttons */}
+      <div className="grid grid-cols-4 gap-2">
         <button
           onClick={onOpenAddArtwork}
-          className="bg-rose-500 hover:bg-rose-600 text-white font-bold p-3 rounded-2xl text-xs flex flex-col items-center justify-center gap-1 shadow-2xs transition-all active:scale-95"
+          className="bg-rose-500 hover:bg-rose-600 text-white font-bold p-2.5 rounded-2xl text-[11px] flex flex-col items-center justify-center gap-1 shadow-2xs transition-all active:scale-95"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           <span>+ 작품 등록</span>
         </button>
 
         <button
           onClick={onOpenAddNotice}
-          className="bg-sky-600 hover:bg-sky-700 text-white font-bold p-3 rounded-2xl text-xs flex flex-col items-center justify-center gap-1 shadow-2xs transition-all active:scale-95"
+          className="bg-sky-600 hover:bg-sky-700 text-white font-bold p-2.5 rounded-2xl text-[11px] flex flex-col items-center justify-center gap-1 shadow-2xs transition-all active:scale-95"
         >
-          <Bell className="w-5 h-5" />
-          <span>+ 공지 작성</span>
+          <Bell className="w-4 h-4" />
+          <span>+ 학원 공지</span>
         </button>
 
         <button
           onClick={onOpenAddSchedule}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-3 rounded-2xl text-xs flex flex-col items-center justify-center gap-1 shadow-2xs transition-all active:scale-95"
+          className="bg-amber-500 hover:bg-amber-600 text-white font-bold p-2.5 rounded-2xl text-[11px] flex flex-col items-center justify-center gap-1 shadow-2xs transition-all active:scale-95"
         >
-          <Sparkles className="w-5 h-5" />
-          <span>+ 특강 일정</span>
+          <Sparkles className="w-4 h-4" />
+          <span>+ 학원 일정</span>
+        </button>
+
+        <button
+          onClick={onOpenExcelImport}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-2xl text-[11px] flex flex-col items-center justify-center gap-1 shadow-2xs transition-all active:scale-95"
+        >
+          <Users className="w-4 h-4" />
+          <span>📊 엑셀 일괄등록</span>
         </button>
       </div>
 
